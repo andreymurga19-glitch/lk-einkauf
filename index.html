@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LK Bauservice — Einkauf</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root{--bg:#f5f4f0;--sb:#1a1a1a;--sur:#fff;--sur2:#f0ede6;--brd:#e0dbd0;--gold:#c8a84b;--gold2:#e8c96a;--dark:#1a1a1a;--txt:#1a1a1a;--mut:#888;--ok:#2d7a4f;--err:#c0392b;--bl:#2c5f8a;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"IBM Plex Sans",sans-serif;background:var(--bg);color:var(--txt);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+/* TOPBAR */
+.topbar{background:var(--dark);display:flex;align-items:center;padding:0 20px;height:52px;gap:16px;flex-shrink:0;border-bottom:2px solid var(--gold);}
+.lk-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:"Bebas Neue",cursive;font-size:20px;color:var(--dark);}
+.logo-name{font-family:"Bebas Neue",cursive;font-size:17px;color:white;letter-spacing:2px;line-height:1;}
+.logo-sub{font-size:9px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;}
+.tb-div{width:1px;height:28px;background:#333;margin:0 4px;}
+.tb-ttl{font-family:"Bebas Neue",cursive;font-size:18px;color:#555;letter-spacing:3px;}
+.plz-pill{margin-left:auto;display:flex;align-items:center;gap:6px;background:#2a2a2a;border:1px solid #444;border-radius:3px;padding:4px 12px;}
+.plz-lbl{font-size:9px;letter-spacing:2px;color:#666;text-transform:uppercase;}
+.plz-sel{background:transparent;border:none;color:var(--gold);font-family:"IBM Plex Mono",monospace;font-size:12px;outline:none;cursor:pointer;}
+.plz-sel option{background:#1a1a1a;color:white;}
+/* LAYOUT */
+.main{display:flex;flex:1;overflow:hidden;}
+/* SIDEBAR */
+.sidebar{width:260px;background:var(--sb);flex-shrink:0;overflow-y:auto;border-right:1px solid #2a2a2a;}
+.sidebar::-webkit-scrollbar{width:4px;}.sidebar::-webkit-scrollbar-thumb{background:#333;border-radius:2px;}
+.tree-hdr{padding:10px 16px 8px;font-size:9px;letter-spacing:3px;color:#555;text-transform:uppercase;border-bottom:1px solid #2a2a2a;font-family:"IBM Plex Mono",monospace;}
+.tg{display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:pointer;transition:background .12s;border-bottom:1px solid rgba(255,255,255,.03);}
+.tg:hover{background:#2a2a2a;}.tg.open{background:#252525;}
+.tg-ar{font-size:9px;color:#555;transition:transform .2s;width:10px;text-align:center;}
+.tg.open .tg-ar{transform:rotate(90deg);color:var(--gold);}
+.tg-ic{font-size:13px;}
+.tg-lb{font-size:12px;color:#aaa;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tg.open .tg-lb{color:white;}
+.tg-ct{font-size:10px;color:#555;font-family:"IBM Plex Mono",monospace;}
+.tc{display:none;background:#111;}.tc.open{display:block;}
+.ti{display:flex;align-items:center;gap:8px;padding:6px 16px 6px 36px;cursor:pointer;transition:background .12s;border-bottom:1px solid rgba(255,255,255,.02);}
+.ti:hover{background:#1e1e1e;}.ti.active{background:rgba(200,168,75,.15);border-left:2px solid var(--gold);padding-left:34px;}
+.ti-dot{width:5px;height:5px;border-radius:50%;background:#444;flex-shrink:0;}
+.ti.active .ti-dot{background:var(--gold);}
+.ti-lb{font-size:12px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ti.active .ti-lb{color:var(--gold);}
+/* TABLE AREA — full height now */
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.tbl-area{flex:1;overflow-y:auto;background:var(--sur);}
+.tbar{display:flex;align-items:center;gap:12px;padding:9px 16px;background:var(--sur2);border-bottom:1px solid var(--brd);flex-shrink:0;}
+.tbar-t{font-size:13px;font-weight:600;color:var(--dark);}
+.tbar-c{font-size:11px;color:var(--mut);font-family:"IBM Plex Mono",monospace;}
+.sbox{margin-left:auto;display:flex;align-items:center;gap:6px;background:white;border:1px solid var(--brd);border-radius:3px;padding:5px 10px;}
+.sbox input{border:none;outline:none;font-family:"IBM Plex Sans",sans-serif;font-size:12px;width:180px;color:var(--txt);background:transparent;}
+.dt{width:100%;border-collapse:collapse;font-size:12px;}
+.dt th{position:sticky;top:0;background:#f8f6f1;border-bottom:2px solid var(--brd);padding:8px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);font-weight:600;white-space:nowrap;z-index:10;}
+.dt td{padding:9px 12px;border-bottom:1px solid #f0ede6;vertical-align:middle;}
+.dt tr:hover td{background:#fffdf5;cursor:pointer;}
+.dt tr.sel td{background:rgba(200,168,75,.1);}
+.dt tr.sel td:first-child{border-left:3px solid var(--gold);padding-left:9px;}
+.nc{font-weight:500;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dc{font-size:11px;color:var(--mut);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pc-cell{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--bl);font-weight:600;text-align:right;white-space:nowrap;}
+.sc{font-size:11px;color:var(--mut);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ac{font-family:"IBM Plex Mono",monospace;font-size:10px;color:#bbb;}
+.lws-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#5a9a5a;margin-right:5px;vertical-align:middle;}
+/* OVERLAY PANEL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:stretch;}
+.overlay.open{display:flex;}
+.panel{background:var(--sur);width:calc(100% - 260px);margin-left:260px;display:flex;flex-direction:column;overflow:hidden;animation:slideIn .2s ease;}
+@keyframes slideIn{from{transform:translateX(30px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.panel-top{background:var(--dark);padding:0 20px;height:52px;display:flex;align-items:center;gap:16px;border-bottom:2px solid var(--gold);flex-shrink:0;}
+.panel-item-name{font-family:"IBM Plex Sans",sans-serif;font-weight:700;font-size:15px;color:white;flex:1;}
+.panel-item-sub{font-size:11px;color:#777;margin-top:2px;}
+.panel-price-badge{background:rgba(200,168,75,.15);border:1px solid var(--gold);border-radius:3px;padding:4px 12px;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--gold);font-weight:700;}
+.close-btn{background:transparent;border:1px solid #444;color:#888;width:30px;height:30px;border-radius:3px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.close-btn:hover{border-color:var(--err);color:var(--err);}
+/* TABS inside panel */
+.ptabs{display:flex;background:var(--sur2);border-bottom:1px solid var(--brd);flex-shrink:0;}
+.ptab{padding:10px 22px;font-size:12px;font-weight:500;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.ptab.active{color:var(--gold);border-bottom-color:var(--gold);background:white;}
+.ptab:hover:not(.active){color:var(--dark);}
+.pc{flex:1;overflow-y:auto;padding:16px 20px;}
+.pc::-webkit-scrollbar{width:5px;}.pc::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px;}
+/* CARDS */
+.nosel{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--mut);gap:8px;}
+.nosel-ic{font-size:32px;opacity:.3;}
+.ldrow{display:flex;align-items:center;gap:12px;padding:20px 0;color:var(--mut);font-size:13px;}
+.spin{width:20px;height:20px;border:2px solid var(--brd);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.pbw{flex:1;height:3px;background:var(--brd);border-radius:2px;overflow:hidden;}
+.pb{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0%;transition:width .5s ease;border-radius:2px;}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+.scard{background:white;border:1px solid var(--brd);border-radius:5px;padding:14px 16px;position:relative;transition:border-color .15s,box-shadow .15s;}
+.scard:hover{border-color:var(--gold);box-shadow:0 3px 14px rgba(200,168,75,.15);}
+.scard.best{border-color:var(--gold);border-left:3px solid var(--gold);}
+.srank{position:absolute;top:10px;right:12px;font-size:9px;letter-spacing:1px;color:var(--mut);font-family:"IBM Plex Mono",monospace;}
+.srank.br{color:var(--gold);font-weight:700;}
+.sname{font-weight:700;font-size:14px;color:var(--dark);margin-bottom:3px;padding-right:90px;}
+.styp{font-size:10px;color:var(--mut);margin-bottom:8px;}
+.prod-block{font-size:11px;font-weight:600;color:#1a1a1a;margin:6px 0 3px;padding:5px 9px;background:#f8f6f1;border-radius:3px;border-left:2px solid var(--gold);}
+.prod-art{font-size:10px;color:#999;font-family:"IBM Plex Mono",monospace;margin-bottom:7px;}
+.smets{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;align-items:center;}
+.smet{background:var(--sur2);border-radius:2px;padding:3px 7px;font-size:10px;font-family:"IBM Plex Mono",monospace;}
+.smet.pr{color:var(--bl);font-weight:700;background:rgba(44,95,138,.1);font-size:12px;}
+.smet.qg{color:var(--ok);background:rgba(45,122,79,.08);}
+.smet.qo{color:#e67e22;background:rgba(230,126,34,.08);}
+.smet.dl{color:var(--mut);}
+.delta-ok{display:inline-flex;align-items:center;gap:3px;background:rgba(45,122,79,.1);border:1px solid rgba(45,122,79,.3);color:var(--ok);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.delta-bad{display:inline-flex;align-items:center;gap:3px;background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.2);color:var(--err);font-size:11px;padding:2px 8px;border-radius:10px;}
+.delta-eq{display:inline-flex;align-items:center;gap:3px;background:var(--sur2);color:var(--mut);font-size:11px;padding:2px 8px;border-radius:10px;}
+.vort{font-size:11px;color:#555;margin-bottom:8px;line-height:1.4;}
+.sacts{display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--brd);flex-wrap:wrap;}
+.sbtn{display:flex;align-items:center;gap:4px;font-size:10px;padding:5px 10px;border-radius:3px;cursor:pointer;transition:all .12s;border:1px solid var(--brd);background:transparent;color:var(--mut);font-family:"IBM Plex Sans",sans-serif;text-decoration:none;}
+.sbtn:hover{border-color:var(--gold);color:var(--gold);}
+.sbtn.gb:hover{border-color:var(--bl);color:var(--bl);}
+.aitip{background:linear-gradient(135deg,#fffbeb,#fff9e0);border:1px solid #e8c96a;border-radius:4px;padding:11px 14px;font-size:12px;color:#7a5c00;margin-bottom:14px;line-height:1.7;}
+/* PRICE COMPARISON BAR */
+.price-compare{background:white;border:1px solid var(--brd);border-radius:5px;padding:16px 20px;margin-bottom:16px;}
+.price-compare-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:12px;font-weight:600;}
+.price-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px;}
+.price-bar-name{width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
+.price-bar-wrap{flex:1;height:18px;background:#f0ede6;border-radius:2px;overflow:hidden;position:relative;}
+.price-bar-fill{height:100%;border-radius:2px;transition:width .6s ease;display:flex;align-items:center;padding-left:6px;}
+.price-bar-val{font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:700;color:white;white-space:nowrap;}
+.price-bar-delta{font-size:10px;width:90px;text-align:right;font-family:"IBM Plex Mono",monospace;}
+/* INFO TAB */
+.itbl{width:100%;border-collapse:collapse;font-size:12px;}
+.itbl td{padding:8px 10px;border-bottom:1px solid #f5f3ee;}
+.itbl td:first-child{color:var(--mut);font-size:11px;width:140px;}
+/* WELCOME */
+.wstate{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--mut);padding:40px;}
+.wstate .wi{font-size:48px;opacity:.2;}
+.wstate .wt{font-size:16px;font-weight:600;color:#bbb;}
+.wstate .ws{font-size:12px;text-align:center;max-width:300px;line-height:1.6;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--sur2);}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px;}
+
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="lk-logo">LK</div>
+    <div><div class="logo-name">LK Bauservice</div><div class="logo-sub">Einkauf · Lieferanten</div></div>
+  </div>
+  <div class="tb-div"></div>
+  <span class="tb-ttl">Nomenclatura</span>
+  <div class="plz-pill">
+    <span class="plz-lbl">&#128205;</span>
+    <select class="plz-sel" id="plzSel">
+      <option value="38226">Salzgitter (38226)</option>
+      <option value="26382">Wilhelmshaven (26382)</option>
+      <option value="38100">Braunschweig (38100)</option>
+      <option value="30159">Hannover (30159)</option>
+      <option value="">Deutschland (gesamt)</option>
+    </select>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="tree-hdr">// Nomenclatura</div>
+    <div id="treeRoot"></div>
+  </div>
+  <div class="content">
+    <div class="tbl-area">
+      <div class="wstate" id="ws">
+        <div class="wi">&#128194;</div>
+        <p class="wt">Gruppe auswählen</p>
+        <p class="ws">Вибери категорію зліва &#8212; клікни на позицію для AI-аналізу</p>
+      </div>
+      <div id="tc" style="display:none">
+        <div class="tbar">
+          <span class="tbar-t" id="tttl">&#8212;</span>
+          <span class="tbar-c" id="tcnt"></span>
+          <div class="sbox"><span style="color:#aaa">&#128269;</span><input type="text" id="tsearch" placeholder="Suchen..." oninput="filterT()"></div>
+        </div>
+        <table class="dt">
+          <thead><tr>
+            <th>&#x2022; Найменування (UA)</th>
+            <th>Bezeichnung (DE)</th>
+            <th>Artikelnr.</th>
+            <th style="text-align:right">Preis &#8364;</th>
+            <th>Lieferant</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY ANALYSIS PANEL -->
+<div class="overlay" id="overlay" id="overlayBg" onclick="closePanelClick(event)">
+  <div class="panel" id="panel">
+    <div class="panel-top">
+      <div style="flex:1;min-width:0">
+        <div class="panel-item-name" id="panelName">&#8212;</div>
+        <div class="panel-item-sub" id="panelSub">&#8212;</div>
+      </div>
+      <div class="panel-price-badge" id="panelPrice">&#8212;</div>
+      <button class="close-btn" onclick="closeOverlay()">&#10005;</button>
+    </div>
+    <div class="ptabs">
+      <div class="ptab active" onclick="swTab('main',this)">&#127968; Основний</div>
+      <div class="ptab" onclick="swTab('cat',this)">&#128203; Каталог LWS</div>
+      <div class="ptab" onclick="swTab('ai',this)">&#9889; AI Рекомендація</div>
+      <div class="ptab" onclick="swTab('info',this)">&#8505; Інфо</div>
+    </div>
+    <div class="pc" id="pc"></div>
+  </div>
+</div>
+
+<script>
+var DB = {
+"1 - Maler":{icon:"🎨",children:{
+  "1 - Малярні Роботи - Malerarbeiten":{icon:"🖌",items:[
+    {n:"Ацетон 0,5л ПОЛЬЩА",d:"Aceton 0,5 POLSKA",a:"",p:2.00,l:"Mari-Gro"},
+    {n:"Ацетон 1л",d:"Aceton 1L",a:"4000590404802",p:7.45,l:"Hornbach"},
+    {n:"Папір для накриття пола ТОНКА 1x100m",d:"MEGA ABDECKPAPIER SCHRENZ 1x100M",a:"3096412",p:0.13,l:"Mega eG"},
+    {n:"Бумага Для Накриття ТОЛСТА 58м",d:"MEGA Mlchtütenpapier schwer 280g 50qm",a:"3095509",p:0.64,l:"Mega eG"},
+    {n:"Валик 10см волокнистий",d:"Ersatzwalzen Microfaser",a:"320836",p:1.56,l:""},
+    {n:"Валик паролоновий 110мм",d:"SCHAUMWALZEN 110mm Lackierwalzen",a:"B07JBXRWD9",p:0.43,l:"Amazon"},
+    {n:"Войлок 50м Щільність 180 (ОСНОВНИЙ)",d:"Abdeckvlies Importqualität 50mx1m",a:"3169864",p:0.35,l:"Amazon"},
+    {n:"Гіпс DOLINA-NIDY 30kg",d:"Gips Budowlany szybkowiążący 30kg",a:"02-05-00060",p:8.29,l:"Hornbach"},
+    {n:"Грунтовка АС-5 POLIMIN 5L",d:"AC-5 POLIMIN Grunt głęboko penetrującą 5L",a:"",p:3.98,l:"Globus F"},
+    {n:"Диск для жирафа К 80 Matrix",d:"Schleifpapier-Set K 80 Matrix",a:"",p:0.60,l:"Amazon"},
+    {n:"Диск для жирафа К 100 Matrix",d:"Schleifpapier-Set K 100 Matrix",a:"",p:0.42,l:"Amazon"},
+    {n:"Диск для жирафа К 120 Matrix",d:"Schleifpapier-Set K 120 Matrix",a:"",p:0.37,l:"Amazon"},
+    {n:"Клей Zell-Leim для обоїв 25kg",d:"Pufas KVS Zell-Leim-Tapetenkleister 25kg",a:"1005-000414",p:5.30,l:"Mega eG"},
+    {n:"Краска Jedynka 10L (матова дерево/метал)",d:"DRIMEM BIALY 10L",a:"20.30.12.0",p:4.66,l:"Mega eG",
+     lws_req:"Лак для деревяних і металевих поверхонь — RAL 9010, шовковисто-глянцевий",
+     catalog:[
+      {name:"Brillux",typ:"Виробник",preis:38.00,einheit:"2,5L",artikul:"Brillux Heizkörperlack 375 / RAL 9010",web:"www.brillux.de",note:"RAL 9010 шовковисто-глянцевий — відповідає вимогам LWS"},
+      {name:"Caparol",typ:"Виробник",preis:34.50,einheit:"2,5L",artikul:"Caparol Capacryl PU-Satinlack weiß",web:"www.caparol.de",note:"Sikkens/Caparol — RAL 9010 для дерева та металу"},
+      {name:"Sikkens",typ:"Виробник",preis:42.00,einheit:"1L",artikul:"Sikkens Rubbol BL Satin RAL 9010",web:"www.sikkens.de",note:"Преміум варіант LWS — шовковисто-глянцевий лак"}
+     ]},
+    {n:"КРАСКА NIKOTINSPERRE 10L (від нікотину)",d:"Izoler Farbe 10L NikotinSperre",a:"5501111",p:5.50,l:"Mega eG"},
+    {n:"Краска MEGA grün 353 Flott EKF weiß 12,5L",d:"MEGA grün 353 Flott EKF weiß 12,5L",a:"3122738",p:26.75,l:"Mega eG",
+     lws_req:"Дисперсійна фарба для стін і стель — клас 3, паропроникна, біла, матова",
+     catalog:[
+      {name:"Brillux",typ:"Виробник",preis:28.50,einheit:"12,5L",artikul:"Brillux Wandfarbe 3 — арт. 1930",web:"www.brillux.de",note:"Еталон якості LWS — клас 3 мокре стирання паропроникна"},
+      {name:"Caparol",typ:"Виробник",preis:24.90,einheit:"12,5L",artikul:"Caparol CapaLatex 3 weiß",web:"www.caparol.de",note:"Відповідає вимогам LWS — клас 3"},
+      {name:"Relius",typ:"Виробник",preis:26.00,einheit:"12,5L",artikul:"Relius Innenfarbe Plus weiß",web:"www.relius.de",note:"Рекомендовано LWS для соціального житла"}
+     ]},
+    {n:"Краска MEGA силікатна 12,5L (Біла) HANOVA",d:"MEGA 327 Silikat Innenfarbe 12,5l weiß",a:"1103683",p:45.84,l:"Mega eG",
+     lws_req:"Силікатна фарба клас 3 паропроникна — для вологих приміщень",
+     catalog:[
+      {name:"Brillux",typ:"Виробник",preis:48.00,einheit:"12,5L",artikul:"Brillux Silikatfarbe 890 weiß",web:"www.brillux.de",note:"Силікатна фарба LWS — для вологих зон"},
+      {name:"Sto",typ:"Виробник",preis:51.00,einheit:"12,5L",artikul:"StoColor Sil weiß",web:"www.sto.de",note:"Мінеральна силікатна — відповідає вимогам LWS"}
+     ]},
+    {n:"Краска для бетонних поверхонь LIQUID 5L",d:"Flüssig Kunststoff 5L Bodenbeschichtung Betonfarbe",a:"B07GB1KJSK",p:66.99,l:"Hornbach"},
+    {n:"Краска для радіатора Mega 104 2,5L weiß",d:"MEGA 104 Classic Heizkörperlack 2,5L weiß",a:"3120522",p:24.58,l:"Mega eG"},
+    {n:"Краска для радіаторів SNIEZKA 0,75L",d:"Sniezka Do Kaloryferow 0,75L",a:"5903973011385",p:11.00,l:"Mari-Gro"},
+    {n:"Краска нікотинка-основна MEGA 328 12,5L",d:"MEGA 328 Isolierfarbe klassik-matt weiß 12,5l",a:"1108411",p:167.00,l:"Mega eG"},
+    {n:"Лезвія Запаски Для Малярного Ножа",d:"Klinge für Tepichmesser",a:"95670199",p:0.10,l:"Amazon"},
+    {n:"Мешки для Пилесоса",d:"Säcke für Staubsauger",a:"14792373476811",p:1.49,l:"Amazon"},
+    {n:"Мешки Муссорові Primafol LDPE 700x1100 Сині",d:"MEGA LDPE Abfallsack 50my 120L blau 700x1100mm",a:"3125537",p:11.38,l:"Mega eG"},
+    {n:"Наждачка Водостійка Р 80",d:"Schleifpapier WATERPROOF CLOTH 80",a:"2002010129373",p:1.53,l:"Amazon"},
+    {n:"Наждачка Водостійка Р 100",d:"Schleifpapier WATERPROOF CLOTH 100",a:"2002010129274",p:1.53,l:"Amazon"},
+    {n:"Наждачка Водостійка Р 120",d:"Schleifpapier R 120",a:"3211",p:1.53,l:"Amazon"},
+    {n:"Обої Rauhfaser Grob 125x0,75м (93,75м²)",d:"Rauhfaser Grobkorn Grosrolle 125,00x0,75m",a:"8030-000168",p:0.56,l:"Mega eG",
+     lws_req:"Raufaser для стін і стель",
+     catalog:[
+      {name:"Erfurt & Sohn KG",typ:"Виробник",preis:0.48,einheit:"м²",artikul:"Raufaser 52 PRO (E&S KG)",web:"www.erfurt.com",note:"Топ вибір LWS — Raufaser 52 PRO, офіційна модель каталогу"},
+      {name:"Brillux",typ:"Виробник",preis:0.52,einheit:"м²",artikul:"Raufaser 51 Brillux",web:"www.brillux.de",note:"Raufaser 51 — альтернатива LWS"},
+      {name:"Conpart",typ:"Виробник",preis:0.44,einheit:"м²",artikul:"Raufaser 1052 Conpart",web:"www.conpart.de",note:"Raufaser 1052 — найдешевший варіант з каталогу LWS"}
+     ]},
+    {n:"Обої вузькі Avantgarde 20x0,53м",d:"Erfurt Papier-Rauhfaser Avantgarde 20x0,53m",a:"",p:7.95,l:"Hornbach",
+     lws_req:"Raufaser для стін і стель",
+     catalog:[
+      {name:"Erfurt & Sohn KG",typ:"Виробник",preis:7.20,einheit:"рулон",artikul:"Erfurt Avantgarde 20x0,53m",web:"www.erfurt.com",note:"Оригінальний виробник — дешевше ніж Hornbach"},
+      {name:"Brillux",typ:"Виробник",preis:6.90,einheit:"рулон",artikul:"Raufaser 51 Kleinrolle Brillux",web:"www.brillux.de",note:"Відповідає вимогам LWS"}
+     ]},
+    {n:"Паска малярний 30мм ОБРАТКА",d:"Tasma malarska 30mm żółta",a:"",p:1.25,l:"Mari-Gro"},
+    {n:"Пена Soudal монтажна 750мл ОСНОВНА",d:"Soudal Soudafoam Gun B2 PU Schaum 750ml",a:"02-1001-0006",p:5.50,l:"Amazon"},
+    {n:"Плівка для накриття меблів 4x5м",d:"Abdeckfolie 4x5m",a:"10331",p:2.99,l:"Globus F"},
+    {n:"Скотч малярний 30мм 50м ОСНОВНИЙ",d:"Malerband 30mm 50m",a:"099234030",p:0.75,l:""},
+    {n:"СПРЕЙ ВІД ПЛЯМ Isolierweiss 400мл",d:"Flecken-Decker Isolierweiss 400ml Flakon",a:"4007555145011",p:10.99,l:"Globus F"},
+    {n:"Засіб від плісені 500мл",d:"CleanPrince Schimmelferner chlorfrei 500ml",a:"8594005390225",p:9.99,l:"Globus F"},
+    {n:"Уголок для шпаклівки Пластик 2,5м",d:"PVC ECKSCHUTZPROFILE 2500mm 25x25mm",a:"6796583",p:1.15,l:"Mari-Gro"},
+    {n:"Шпаклівка SINIAT 25kg (Стартова)",d:"Gips szpachlowy NIDA START SINIAT 25kg",a:"1487",p:10.05,l:"Mari-Gro"},
+    {n:"Шпаклівка SINIAT 25kg (Фінішна)",d:"Gips szpachlowy NIDA FINISH SINIAT 25kg",a:"5907697610534",p:10.40,l:"Mari-Gro"},
+    {n:"Шпаклівка акрилова AFP-77 POLIMIN 16kg",d:"AFP-77 POLIMIN Akrylowa masa szpachlowa 16kg",a:"",p:11.30,l:"Mari-Gro"},
+    {n:"Шпаклівка мінеральна 14kg MEGA 675",d:"MEGAgrün 675 Megamur Handspachtel EKF weiß 14kg",a:"3126044",p:23.79,l:"Mega eG"},
+    {n:"Шпаклівка по дереву 400г FEINSPACHTEL",d:"FEINSPACHTEL 400G TUBE DECOTRIC",a:"4007955334019",p:4.99,l:"Globus F"},
+    {n:"Штукатурка цементна Kalk-PUTZ MG III 25kg",d:"Putz/Mauermörtel Kalk-Zementmörtel MG III 25kg",a:"2104014",p:3.35,l:"Hornbach"},
+    {n:"Штукатурка KNAUF MP-75 30kg",d:"MEGA 620 Megamur Gipsleichtputz weiß 25kg",a:"3167402",p:10.75,l:"Hornbach"},
+    {n:"Штукатурка POLIMIN MG-50 30kg гіпсова",d:"Tynk gipsowy POLIMIN MG-50 30KG",a:"",p:7.89,l:"Mari-Gro"}
+  ]},
+  "4 - Гіпсокартон - Gipskartonplatten":{icon:"🧱",items:[
+    {n:"Гіпсокартон Knauf 12,5мм стандарт",d:"Knauf Goldband GKB 12,5mm",a:"",p:7.50,l:"Knauf"},
+    {n:"Гіпсокартон Knauf вологостійкий 12,5мм",d:"Knauf Diamant GKFI 12,5mm",a:"",p:9.20,l:"Knauf"},
+    {n:"Гіпс DOLINA-NIDY 30kg",d:"Gips Budowlany szybkowiążący 30kg",a:"02-05-00060",p:8.29,l:"Hornbach"}
+  ]},
+  "2 - Полы - Boden":{icon:"🏠",items:[
+    {n:"Естрих цемент 25кг",d:"Estrich Zement 25kg",a:"",p:6.90,l:"Hornbach"},
+    {n:"Покриття підлоги епоксид 5л",d:"Bodenbeschichtung Epoxid 5L",a:"",p:45.00,l:"Bauhaus"}
+  ]},
+  "6 - Silikon-Akryl":{icon:"🔧",items:[
+    {n:"Силікон санітарний білий 310мл",d:"Silikon Sanitär weiß 310ml",a:"",p:3.50,l:"Bauhaus"},
+    {n:"Акрил білий 310мл",d:"Acryl weiß 310ml",a:"",p:2.20,l:"Hornbach"}
+  ]},
+  "8 - Решетки, Вентиляція":{icon:"💨",items:[
+    {n:"Вентиляційна решітка 100мм біла",d:"Lüftungsgitter 100mm weiß",a:"",p:2.90,l:"Amazon"},
+    {n:"Вентиляційна решітка 125мм",d:"Lüftungsgitter 125mm",a:"",p:3.50,l:"Amazon"}
+  ]}
+}},
+"2 - Fliesen":{icon:"⬛",children:{
+  "Fliesen Material":{icon:"🔲",items:[
+    {n:"Клей для плитки С2 25кг",d:"Fliesekleber C2 25kg",a:"",p:12.50,l:"Bauhaus"},
+    {n:"Фугенмортель сірий 5кг",d:"Fugenmörtel grau 5kg",a:"",p:8.90,l:"Bauhaus"}
+  ]}
+}},
+"3 - Elektriker":{icon:"⚡",children:{
+  "Kabel - Кабель":{icon:"🔌",items:[
+    {n:"Кабель NYM 3x1,5мм 100м",d:"NYM-J 3x1,5mm² 100m",a:"",p:68.00,l:"Bauhaus"}
+  ]},
+  "KABELKANAL/ГОФРА":{icon:"📦",items:[
+    {n:"Кабельканал 20x10мм 2м білий",d:"Kabelkanal 20x10mm 2m weiß",a:"",p:1.20,l:"Amazon"}
+  ]}
+}},
+"4 - Sanitär":{icon:"🚿",children:{
+  "BEFESTIGUNG - Кріплення":{icon:"🔩",items:[
+    {n:"Дюбель SX 8x40мм (100шт)",d:"Dübel SX 8x40mm 100St",a:"",p:4.90,l:"Bauhaus"}
+  ]},
+  "FITTING - Фітинги":{icon:"🔧",items:[
+    {n:"Кут 1/2 дюйма латунь",d:"Winkel 1/2 Messing",a:"",p:2.80,l:"Bauhaus"}
+  ]}
+}}
+};
+
+
+
+var curItems=[],selItem=null,curTab='main';
+
+function buildTree(){
+  var root=document.getElementById('treeRoot');
+  root.innerHTML='';
+  Object.entries(DB).forEach(function(ge){
+    var gn=ge[0],g=ge[1];
+    var tot=Object.values(g.children).reduce(function(s,c){return s+c.items.length;},0);
+    // Group header
+    var gDiv=document.createElement('div');
+    gDiv.className='tg';
+    gDiv.innerHTML='<span class="tg-ar">&#9658;</span><span class="tg-ic">'+g.icon+'</span><span class="tg-lb">'+gn+'</span><span class="tg-ct">'+tot+'</span>';
+    gDiv.addEventListener('click',function(){togG(gDiv);});
+    // Children
+    var cDiv=document.createElement('div');
+    cDiv.className='tc';
+    Object.entries(g.children).forEach(function(ce){
+      var cn=ce[0],ch=ce[1];
+      var ti=document.createElement('div');
+      ti.className='ti';
+      ti.innerHTML='<span class="ti-dot"></span><span class="ti-lb">'+ch.icon+' '+cn+'</span>';
+      ti.addEventListener('click',function(e){e.stopPropagation();loadG(ti,cn,gn);});
+      cDiv.appendChild(ti);
+    });
+    var wrapper=document.createElement('div');
+    wrapper.appendChild(gDiv);
+    wrapper.appendChild(cDiv);
+    root.appendChild(wrapper);
+  });
+}
+
+function togG(el){
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
+}
+
+function loadG(el,cn,gn){
+  document.querySelectorAll('.ti').forEach(function(i){i.classList.remove('active');});
+  el.classList.add('active');
+  var ch=DB[gn].children[cn];
+  if(!ch)return;
+  curItems=ch.items; selItem=null;
+  document.getElementById('ws').style.display='none';
+  document.getElementById('tc').style.display='block';
+  document.getElementById('tttl').textContent=ch.icon+' '+cn;
+  document.getElementById('tcnt').textContent=ch.items.length+' Positionen';
+  document.getElementById('tsearch').value='';
+  renderT(ch.items);
+}
+
+function renderT(items){
+  var tb=document.getElementById('tbody');
+  tb.innerHTML='';
+  items.forEach(function(item){
+    var tr=document.createElement('tr');
+    var hasCat=item.catalog&&item.catalog.length>0;
+    var dot=hasCat?'<span class="lws-dot" title="є в каталозі LWS"></span>':'';
+    tr.innerHTML='<td class="nc">'+dot+item.n+'</td>'
+      +'<td class="dc">'+item.d+'</td>'
+      +'<td class="ac">'+(item.a||'—')+'</td>'
+      +'<td class="pc-cell">'+(item.p?'€'+item.p.toFixed(2):'—')+'</td>'
+      +'<td class="sc">'+(item.l||'—')+'</td>';
+    tr.addEventListener('click',function(){openPanel(item,tr);});
+    tb.appendChild(tr);
+  });
+}
+
+function filterT(){
+  var q=document.getElementById('tsearch').value.toLowerCase();
+  renderT(curItems.filter(function(i){
+    return (i.n||'').toLowerCase().includes(q)
+      ||(i.d||'').toLowerCase().includes(q)
+      ||(i.a||'').toLowerCase().includes(q);
+  }));
+}
+
+function openPanel(item,tr){
+  document.querySelectorAll('#tbody tr').forEach(function(r){r.classList.remove('sel');});
+  tr.classList.add('sel');
+  selItem=item;
+  document.getElementById('panelName').textContent=item.n;
+  document.getElementById('panelSub').textContent=item.d+(item.a?' · Арт: '+item.a:'');
+  document.getElementById('panelPrice').innerHTML=item.p?'&euro;'+item.p.toFixed(2)+' <span style="font-size:9px;opacity:.6">1С</span>':'без ціни';
+  document.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('active');});
+  document.querySelector('.ptab').classList.add('active');
+  curTab='main';
+  document.getElementById('overlay').classList.add('open');
+  loadTab('main');
+}
+
+function closeOverlay(){
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function closePanelClick(e){
+  if(e.target===document.getElementById('overlay')) closeOverlay();
+}
+
+function swTab(tab,el){
+  curTab=tab;
+  document.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  loadTab(tab);
+}
+
+function loadTab(t){
+  if(t==='main') doMain();
+  else if(t==='cat') doCat();
+  else if(t==='ai') doAI();
+  else doInfo();
+}
+
+function doMain(){
+  var item=selItem;
+  var pc=document.getElementById('pc');
+  if(!item.l){
+    pc.innerHTML='<div class="nosel"><div class="nosel-ic">—</div><p>Основний постачальник не вказаний</p></div>';
+    return;
+  }
+  pc.innerHTML='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">'
+    +'<div class="scard best" style="min-width:260px;max-width:360px">'
+    +'<span class="srank br">ОСНОВНИЙ</span>'
+    +'<div class="sname">🏢 '+item.l+'</div>'
+    +'<div class="styp">Поточний постачальник LK Bauservice</div>'
+    +'<div class="smets"><span class="smet pr">€'+(item.p?item.p.toFixed(2):'—')+' / од.</span>'
+    +'<span class="smet dl">Ціна в 1С</span></div>'
+    +'<div class="sacts" id="mainActs"></div></div>'
+    +'<div style="flex:1;min-width:200px"><table class="itbl">'
+    +'<tr><td>Артикул</td><td style="font-family:monospace">'+(item.a||'—')+'</td></tr>'
+    +'<tr><td>Поточна ціна</td><td style="color:var(--bl);font-weight:700">€'+(item.p?item.p.toFixed(2):'—')+'</td></tr>'
+    +'<tr><td>Ціна нетто</td><td>'+(item.p?'€'+(item.p/1.19).toFixed(2):'—')+'</td></tr>'
+    +'<tr><td>Дата</td><td>'+new Date().toLocaleDateString('de')+'</td></tr>'
+    +'</table></div></div>';
+  // Add buttons safely
+  var acts=document.getElementById('mainActs');
+  var btnQ=document.createElement('button');
+  btnQ.className='sbtn'; btnQ.textContent='✉ Запит';
+  btnQ.addEventListener('click',function(){cpyA(item.l,item.d);});
+  var btnG=document.createElement('a');
+  btnG.className='sbtn gb'; btnG.textContent='🔍 Google'; btnG.target='_blank';
+  btnG.href='https://www.google.de/search?q='+encodeURIComponent(item.l+' '+item.d);
+  acts.appendChild(btnQ); acts.appendChild(btnG);
+}
+
+function doCat(){
+  var item=selItem;
+  var pc=document.getElementById('pc');
+  if(!item.catalog||!item.catalog.length){
+    pc.innerHTML='<div class="nosel"><div class="nosel-ic">📋</div><p style="font-size:12px;text-align:center">Каталог LWS для цієї позиції не заповнений</p></div>';
+    return;
+  }
+  var wrap=document.createElement('div');
+  if(item.lws_req){
+    var req=document.createElement('div');
+    req.style.cssText='background:#e8f4e8;border:1px solid #5a9a5a;border-radius:4px;padding:9px 14px;margin-bottom:14px;font-size:12px;color:#2d5a2d';
+    req.innerHTML='<strong>📋 Вимога LWS:</strong> '+item.lws_req;
+    wrap.appendChild(req);
+  }
+  var grid=document.createElement('div');
+  grid.className='sgrid';
+  item.catalog.forEach(function(s,i){
+    var card=document.createElement('div');
+    card.className='scard'+(i===0?' best':'');
+    var rankEl=document.createElement('span');
+    rankEl.className='srank'+(i===0?' br':'');
+    rankEl.textContent='LWS #'+(i+1);
+    card.appendChild(rankEl);
+    var inner='<div class="sname">📋 '+s.name+'</div>'
+      +'<div class="styp">'+(s.typ||'Каталог LWS')+'</div>';
+    if(s.artikul) inner+='<div class="prod-block">'+s.artikul+'</div>';
+    inner+='<div class="smets">'+(s.preis?'<span class="smet pr">€'+s.preis.toFixed(2)+' / '+(s.einheit||'од')+'</span>':'<span class="smet dl">ціна за запитом</span>')+'</div>';
+    if(s.note) inner+='<div class="vort">ℹ '+s.note+'</div>';
+    inner+='<div class="sacts" id="catActs'+i+'"></div>';
+    card.innerHTML+=inner;
+    grid.appendChild(card);
+    // Add buttons after DOM insert
+    setTimeout(function(si,scard,ss){
+      var a=scard.querySelector('#catActs'+si);
+      if(!a)return;
+      if(ss.web){var lnk=document.createElement('a');lnk.className='sbtn';lnk.textContent='🌐 Сайт';lnk.href='https://'+ss.web;lnk.target='_blank';a.appendChild(lnk);}
+      var bq=document.createElement('button');bq.className='sbtn';bq.textContent='✉ Запит';
+      bq.addEventListener('click',function(){cpyA(ss.name,item.d);});
+      a.appendChild(bq);
+    },0,i,card,s);
+  });
+  wrap.appendChild(grid);
+  pc.innerHTML='';
+  pc.appendChild(wrap);
+}
+
+function animP(){
+  var steps=[[15,'Аналіз товару...'],[40,'Пошук постачальників...'],[65,'Порівняння цін...'],[85,'Формування рекомендації...']];
+  var i=0;
+  var go=function(){
+    var b=document.getElementById('pbr'),t=document.getElementById('ltxt');
+    if(!b)return;
+    if(i<steps.length){b.style.width=steps[i][0]+'%';if(t)t.textContent=steps[i][1];i++;setTimeout(go,700);}
+  };
+  setTimeout(go,200);
+}
+
+async function doAI(){
+  if(!selItem)return;
+  var item=selItem;
+  var plzL=document.getElementById('plzSel').selectedOptions[0].text;
+  var plz=document.getElementById('plzSel').value;
+  var pc=document.getElementById('pc');
+
+  pc.innerHTML='<div class="ldrow"><div class="spin"></div>'
+    +'<span id="ltxt">Шукаю реальні альтернативи в інтернеті...</span>'
+    +'<div class="pbw"><div class="pb" id="pbr"></div></div></div>';
+  animP();
+
+  var sysMsg = "You are a procurement expert for German construction. "
+    + "Use web_search to find REAL alternative products from DIFFERENT manufacturers than the given product. "
+    + "Search for actual product pages with real prices and EAN/article numbers. "
+    + "NEVER invent prices, article numbers or URLs. "
+    + "If price is unknown write null. If article number unknown write null. "
+    + "Return ONLY valid JSON. All text fields in Ukrainian.";
+
+  var userMsg = "Знайди 4 реальних альтернативи цьому продукту від ІНШИХ виробників:\n"
+    + "Продукт: " + item.d + "\n"
+    + "UA: " + item.n + "\n"
+    + "Поточна ціна: " + (item.p||"?") + " EUR у " + (item.l||"невідомий") + "\n"
+    + "Регіон: " + plzL + " PLZ:" + plz + "\n\n"
+    + "Для кожної альтернативи знайди через веб-пошук:\n"
+    + "1. Точну назву продукту\n"
+    + "2. Пряме посилання на сторінку ТОВАРУ (не головна сторінка сайту)\n"
+    + "3. EAN або артикул (тільки якщо реально знайшов)\n"
+    + "4. Реальну ціну (тільки якщо знайшов на сторінці)\n"
+    + "5. Контакт для B2B запиту (email або форма)\n\n"
+    + "JSON:\n"
+    + '{"ai_tip":"коротка порада українською",'
+    + '"lieferanten":['
+    + '{"hersteller":"виробник",'
+    + '"produkt_name":"точна назва продукту",'
+    + '"ean":"EAN або null",'
+    + '"artikul":"артикул або null",'
+    + '"preis_brutto":null,'
+    + '"preis_netto":null,'
+    + '"einheit":"12,5L",'
+    + '"produkt_url":"ПРЯМЕ посилання на сторінку товару або null",'
+    + '"shop_name":"назва магазину де знайшов ціну",'
+    + '"kontakt_email":"email або null",'
+    + '"kontakt_form":"посилання на контактну форму або null",'
+    + '"lieferzeit":"термін або null",'
+    + '"vorteil":"перевага українською",'
+    + '"nassabrieb":"клас 1/2/3"}'
+    + ']}';
+
+  try{
+    var r = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:5000,
+        system: sysMsg,
+        tools:[{"type":"web_search_20250305","name":"web_search"}],
+        messages:[{role:"user",content:userMsg}]
+      })
+    });
+    var data = await r.json();
+    if(!r.ok) throw new Error((data.error&&data.error.message)||"HTTP "+r.status);
+
+    var txt = '';
+    (data.content||[]).forEach(function(b){ if(b.type==='text') txt+=b.text; });
+    txt = txt.replace(/```json|```/g,'').trim();
+    var j1=txt.indexOf('{'), j2=txt.lastIndexOf('}');
+    if(j1>=0&&j2>=0) txt=txt.slice(j1,j2+1);
+    renderS(JSON.parse(txt), item);
+  }catch(e){
+    pc.innerHTML='<div style="padding:20px">'
+      +'<p style="color:var(--err);font-size:13px">&#9888; '+e.message+'</p>'
+      +'<button id="retryBtn" style="margin-top:12px;padding:7px 18px;background:var(--gold);border:none;'
+      +'border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">'
+      +'&#8635; Повторити</button></div>';
+    var rb=document.getElementById('retryBtn');
+    if(rb) rb.addEventListener('click',doAI);
+  }
+}
+
+function renderS(data, item){
+  var curP = item.p||0;
+  var suppliers = data.lieferanten||[];
+  var pc = document.getElementById('pc');
+  var wrap = document.createElement('div');
+
+  // AI TIP
+  var tip = document.createElement('div');
+  tip.className = 'aitip';
+  tip.innerHTML = '&#128269; <strong>Реальний пошук:</strong> '+(data.ai_tip||'—')
+    +'<div style="font-size:10px;color:var(--ok);margin-top:5px">&#10003; Дані отримані через веб-пошук — ціни та посилання реальні</div>';
+  wrap.appendChild(tip);
+
+  // PRICE BAR
+  if(curP>0 && suppliers.length>0){
+    var vals = suppliers.filter(function(s){return s.preis_brutto>0;}).map(function(s){return s.preis_brutto;});
+    if(vals.length>0){
+      var maxP = Math.max.apply(null, vals.concat([curP])) * 1.15;
+      var cmp = document.createElement('div');
+      cmp.className = 'price-compare';
+      cmp.innerHTML = '<div class="price-compare-title">&#128202; Порівняння цін (поточна vs знайдені)</div>';
+
+      // current
+      var cw = Math.round((curP/maxP)*100);
+      var row0 = document.createElement('div');
+      row0.className = 'price-bar-row';
+      row0.innerHTML = '<div class="price-bar-name" style="font-weight:700;color:var(--bl)">&#128312; 1С &mdash; '+(item.l||'поточний')+'</div>'
+        +'<div class="price-bar-wrap"><div class="price-bar-fill" style="width:'+cw+'%;background:var(--bl)">'
+        +'<span class="price-bar-val">&euro;'+curP.toFixed(2)+'</span></div></div>'
+        +'<div class="price-bar-delta" style="color:var(--bl);font-weight:700">поточна</div>';
+      cmp.appendChild(row0);
+
+      suppliers.forEach(function(s){
+        if(!s.preis_brutto) return;
+        var w = Math.round((s.preis_brutto/maxP)*100);
+        var diff = s.preis_brutto - curP;
+        var pct = Math.round((diff/curP)*100);
+        var color = pct<0?'var(--ok)':pct>0?'var(--err)':'var(--mut)';
+        var bg = pct<0?'#2d7a4f':pct>0?'#c0392b':'#888';
+        var dStr = pct<0?'&#9660; '+Math.abs(pct)+'% дешевше':pct>0?'&#9650; +'+pct+'% дорожче':'= однак.';
+        var row = document.createElement('div');
+        row.className = 'price-bar-row';
+        row.innerHTML = '<div class="price-bar-name">'+s.hersteller+'</div>'
+          +'<div class="price-bar-wrap"><div class="price-bar-fill" style="width:'+w+'%;background:'+bg+'">'
+          +'<span class="price-bar-val">&euro;'+s.preis_brutto.toFixed(2)+'</span></div></div>'
+          +'<div class="price-bar-delta" style="color:'+color+';font-weight:700">'+dStr+'</div>';
+        cmp.appendChild(row);
+      });
+      wrap.appendChild(cmp);
+    }
+  }
+
+  // SUPPLIER CARDS
+  var grid = document.createElement('div');
+  grid.className = 'sgrid';
+
+  suppliers.forEach(function(s,i){
+    var card = document.createElement('div');
+    card.className = 'scard'+(i===0?' best':'');
+
+    // Rank
+    var rank = document.createElement('span');
+    rank.className = 'srank'+(i===0?' br':'');
+    rank.textContent = i===0?'★ НАЙКРАЩЕ':'#'+(i+1);
+    card.appendChild(rank);
+
+    // Price delta badge
+    var deltaBadge = '';
+    if(curP>0 && s.preis_brutto>0){
+      var d2 = s.preis_brutto - curP;
+      var p2 = Math.round((d2/curP)*100);
+      if(p2<0) deltaBadge='<span class="delta-ok">&#9660; '+Math.abs(p2)+'% дешевше</span>';
+      else if(p2>0) deltaBadge='<span class="delta-bad">&#9650; +'+p2+'% дорожче</span>';
+      else deltaBadge='<span class="delta-eq">= однакова ціна</span>';
+    }
+
+    // Inner HTML
+    var inner = '<div class="sname">&#127981; '+s.hersteller+'</div>'
+      +'<div class="styp">'+(s.nassabrieb?'Nassabrieb Kl.'+s.nassabrieb:'')+'</div>';
+
+    // Product block
+    inner += '<div class="prod-block">'+s.produkt_name+'</div>';
+
+    // EAN / Artikul
+    var artLine = '';
+    if(s.ean) artLine += 'EAN: '+s.ean;
+    if(s.artikul) artLine += (artLine?' &nbsp;|&nbsp; ':'')+'Арт: '+s.artikul;
+    if(artLine) inner += '<div class="prod-art">'+artLine+'</div>';
+    else inner += '<div class="prod-art" style="color:#e67e22">&#9888; артикул не знайдено</div>';
+
+    // Metrics
+    inner += '<div class="smets">';
+    if(s.preis_brutto){
+      inner += '<span class="smet pr">&euro;'+s.preis_brutto.toFixed(2)+' brutto';
+      if(s.preis_netto) inner += ' / &euro;'+s.preis_netto.toFixed(2)+' netto';
+      inner += ' / '+s.einheit+'</span>';
+      if(deltaBadge) inner += deltaBadge;
+    } else {
+      inner += '<span class="smet dl" style="color:#e67e22">&#9888; ціна невідома &mdash; уточни</span>';
+    }
+    if(s.shop_name) inner += '<span class="smet dl">&#128722; '+s.shop_name+'</span>';
+    if(s.lieferzeit) inner += '<span class="smet dl">&#128336; '+s.lieferzeit+'</span>';
+    inner += '</div>';
+
+    if(s.vorteil) inner += '<div class="vort">&#10003; '+s.vorteil+'</div>';
+
+    // ACTION BUTTONS area
+    inner += '<div class="sacts" id="acts'+i+'"></div>';
+
+    card.innerHTML += inner;
+    grid.appendChild(card);
+
+    // Add buttons safely after DOM insert
+    setTimeout(function(si, sc, ss){
+      var acts = sc.querySelector('#acts'+si);
+      if(!acts) return;
+
+      // Product page link
+      if(ss.produkt_url){
+        var lnk = document.createElement('a');
+        lnk.className = 'sbtn';
+        lnk.style.cssText = 'background:rgba(200,168,75,.1);border-color:var(--gold);color:var(--gold)';
+        lnk.innerHTML = '&#128279; Сторінка товару';
+        lnk.href = ss.produkt_url;
+        lnk.target = '_blank';
+        acts.appendChild(lnk);
+      }
+
+      // Contact form
+      if(ss.kontakt_form){
+        var cf = document.createElement('a');
+        cf.className = 'sbtn';
+        cf.innerHTML = '&#128203; B2B запит';
+        cf.href = ss.kontakt_form;
+        cf.target = '_blank';
+        acts.appendChild(cf);
+      }
+
+      // Copy email inquiry
+      var mailBtn = document.createElement('button');
+      mailBtn.className = 'sbtn';
+      mailBtn.innerHTML = '&#9993; Лист скопіювати';
+      mailBtn.addEventListener('click', function(){
+        buildAndCopyMail(ss, item);
+      });
+      acts.appendChild(mailBtn);
+
+      // Open mailto if email known
+      if(ss.kontakt_email){
+        var mailLink = document.createElement('a');
+        mailLink.className = 'sbtn gb';
+        mailLink.innerHTML = '&#128231; '+ss.kontakt_email;
+        mailLink.href = 'mailto:'+ss.kontakt_email
+          +'?subject=Angebotsanfrage '+encodeURIComponent(ss.produkt_name)
+          +'&body='+encodeURIComponent(buildMailText(ss, item));
+        acts.appendChild(mailLink);
+      }
+
+    }, 0, i, card, s);
+  });
+
+  wrap.appendChild(grid);
+  pc.innerHTML = '';
+  pc.appendChild(wrap);
+}
+
+function buildMailText(s, item){
+  var plzL = document.getElementById('plzSel').selectedOptions[0].text;
+  return "Sehr geehrte Damen und Herren,\n\n"
+    + "wir sind LK Bauservice GmbH, ein Bauunternehmen aus der Region " + plzL + ".\n"
+    + "Wir interessieren uns für folgendes Produkt:\n\n"
+    + "Produkt: " + s.produkt_name + "\n"
+    + (s.ean ? "EAN: " + s.ean + "\n" : "")
+    + (s.artikul ? "Artikelnummer: " + s.artikul + "\n" : "")
+    + "\nWir bitten um folgende Informationen:\n"
+    + "- Netto-Preis pro Einheit für gewerbliche Kunden\n"
+    + "- Staffelpreise ab 10, 50, 100 Einheiten\n"
+    + "- Lieferzeit in die Region " + plzL + "\n"
+    + "- Mindestbestellmenge\n"
+    + "- Zahlungskonditionen / Skonto\n\n"
+    + "Wir verwalten mehrere Baustellen pro Jahr und suchen einen zuverlässigen Lieferanten.\n\n"
+    + "Mit freundlichen Grüßen\n"
+    + "LK Bauservice GmbH\n"
+    + "Einkaufsabteilung";
+}
+
+function buildAndCopyMail(s, item){
+  var txt = buildMailText(s, item);
+  navigator.clipboard.writeText(txt).then(function(){
+    alert('Лист скопійовано!\n\nВідправ на: ' + (s.kontakt_email||'знайди контакт на сайті постачальника'));
+  });
+}
+
+
+async function doInfo(){
+  if(!selItem)return;
+  var item=selItem;
+  var pc=document.getElementById('pc');
+  var wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;gap:20px;flex-wrap:wrap';
+  var left=document.createElement('div');
+  left.style.cssText='flex:1;min-width:220px';
+  left.innerHTML='<table class="itbl">'
+    +'<tr><td>Назва UA</td><td><strong>'+item.n+'</strong></td></tr>'
+    +'<tr><td>Bezeichnung DE</td><td>'+item.d+'</td></tr>'
+    +'<tr><td>Artikelnummer</td><td style="font-family:monospace">'+(item.a||'—')+'</td></tr>'
+    +'<tr><td>Ціна €</td><td style="color:var(--bl);font-weight:700">€'+(item.p?item.p.toFixed(2):'—')+'</td></tr>'
+    +'<tr><td>Постачальник</td><td>'+(item.l||'—')+'</td></tr>'
+    +'</table>';
+  var right=document.createElement('div');
+  right.id='infoDesc';
+  right.style.cssText='flex:2;min-width:300px';
+  right.innerHTML='<div class="ldrow"><div class="spin"></div><span>AI завантажує характеристики...</span></div>';
+  wrap.appendChild(left); wrap.appendChild(right);
+  pc.innerHTML=''; pc.appendChild(wrap);
+
+  var lines2=[
+    "Product: "+item.d+" ("+item.n+")",
+    "Article: "+(item.a||"unknown"),
+    "",
+    "Return ONLY valid JSON. All values in Ukrainian. No double quotes inside strings.",
+    '{"pryznachennya":"purpose in construction",',
+    '"vlastyvosti":["property 1","property 2","property 3","property 4","property 5"],',
+    '"zastosuvannya":"how and where to apply",',
+    '"norma_vytrat":"consumption per m2 or unit",',
+    '"zberigannya":"storage conditions",',
+    '"uvaga":"warning or empty string"}'
+  ];
+  try{
+    var r2=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",max_tokens:800,
+        system:"You are a construction materials expert. Respond ONLY with valid JSON. No text before or after. All values in Ukrainian language.",
+        messages:[{role:"user",content:lines2.join("\n")}]
+      })
+    });
+    var d2=await r2.json();
+    if(!r2.ok) throw new Error((d2.error&&d2.error.message)||"HTTP "+r2.status);
+    var t2=d2.content.map(function(c){return c.text||"";}).join("");
+    t2=t2.replace(/```json|```/g,"").trim();
+    var j2=t2.indexOf("{"),je2=t2.lastIndexOf("}");
+    if(j2>=0&&je2>=0) t2=t2.slice(j2,je2+1);
+    var info=JSON.parse(t2);
+    var desc=document.getElementById('infoDesc');
+    if(!desc)return;
+    var h='<div style="background:#fffbeb;border:1px solid #e8c96a;border-radius:4px;padding:11px 14px;margin-bottom:12px">'
+      +'<div style="font-size:10px;letter-spacing:2px;color:#b8860b;text-transform:uppercase;margin-bottom:5px">Призначення</div>'
+      +'<div style="font-size:12px;color:#3a3000;line-height:1.7">'+(info.pryznachennya||'—')+'</div></div>';
+    if(info.vlastyvosti&&info.vlastyvosti.length){
+      h+='<div style="background:white;border:1px solid var(--brd);border-radius:4px;padding:11px 14px;margin-bottom:12px">'
+        +'<div style="font-size:10px;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-bottom:8px">Властивості</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:6px">';
+      info.vlastyvosti.forEach(function(v){
+        h+='<span style="background:#f0ede6;border-radius:3px;padding:4px 9px;font-size:11px;color:#444">✓ '+v+'</span>';
+      });
+      h+='</div></div>';
+    }
+    h+='<table class="itbl">';
+    if(info.zastosuvannya) h+='<tr><td>Застосування</td><td>'+info.zastosuvannya+'</td></tr>';
+    if(info.norma_vytrat)  h+='<tr><td>Витрата</td><td><strong>'+info.norma_vytrat+'</strong></td></tr>';
+    if(info.zberigannya)   h+='<tr><td>Зберігання</td><td>'+info.zberigannya+'</td></tr>';
+    if(info.uvaga)         h+='<tr><td>⚠ Увага</td><td style="color:var(--err)">'+info.uvaga+'</td></tr>';
+    h+='</table>';
+    desc.innerHTML=h;
+  }catch(e2){
+    var d=document.getElementById('infoDesc');
+    if(d) d.innerHTML='<p style="color:var(--err);font-size:12px">Помилка: '+e2.message+'</p>';
+  }
+}
+
+function cpyA(name,artikel){
+  var plzL=document.getElementById('plzSel').selectedOptions[0].text;
+  var txt="Sehr geehrte Damen und Herren,\n\nwir sind LK Bauservice GmbH aus der Region "+plzL+" und interessieren uns für:\n\nArtikel: "+artikel+"\n\nBitte mitteilen:\n- Preis pro Einheit (inkl./exkl. MwSt.)\n- Staffelpreise / Mengenrabatte\n- Lieferzeit\n- Mindestbestellmenge\n- Zahlungskonditionen\n\nMit freundlichen Grüßen\nLK Bauservice GmbH";
+  navigator.clipboard.writeText(txt).then(function(){alert("Запит до "+name+" скопійовано!");});
+}
+
+
+
+
+// ═══════════════════════════════════
+// TRACKER
+// ═══════════════════════════════════
+var TRACKER_KEY = 'lk_tracker_v1';
+var editingId = null;
+var MONO = "font-family:'IBM Plex Mono',monospace";
+
+var STATUS_MAP = {
+  sent:       {label:'\u2709\uFE0F Очікую відповідь', cls:'st-sent'},
+  replied:    {label:'\u2705 Відповіли', cls:'st-replied'},
+  negotiating:{label:'\uD83D\uDCAC Переговори', cls:'st-negotiating'},
+  accepted:   {label:'\uD83C\uDFC6 Прийнято', cls:'st-accepted'},
+  rejected:   {label:'\u274C Відмова', cls:'st-rejected'},
+  noresponse: {label:'\uD83D\uDE10 Не відповіли', cls:'st-noresponse'}
+};
+
+function getEntries(){
+  try{ return JSON.parse(localStorage.getItem(TRACKER_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+
+function saveEntries(arr){
+  localStorage.setItem(TRACKER_KEY, JSON.stringify(arr));
+}
+
+function openTrackerFull(){
+  document.getElementById('trackerOverlay').classList.add('open');
+  renderTracker();
+}
+
+function closeTracker(){
+  document.getElementById('trackerOverlay').classList.remove('open');
+}
+
+function closeTrackerClick(e){
+  if(e.target===document.getElementById('trackerOverlay')) closeTracker();
+}
+
+function renderTracker(){
+  var tc = document.getElementById('trackerContent');
+  var entries = getEntries();
+
+  if(!entries.length){
+    tc.innerHTML = '<div class="tracker-empty">'
+      +'<div style="font-size:40px;opacity:.2">&#128202;</div>'
+      +'<p style="font-size:14px;font-weight:600;color:#bbb">Записів немає</p>'
+      +'<p style="font-size:12px">Натисни "+ Додати запис" щоб почати</p>'
+      +'</div>';
+    return;
+  }
+
+  var total = entries.length;
+  var replied = entries.filter(function(e){return e.status==='replied'||e.status==='negotiating'||e.status==='accepted';}).length;
+  var accepted = entries.filter(function(e){return e.status==='accepted';}).length;
+  var waiting = entries.filter(function(e){return e.status==='sent';}).length;
+
+  var statBox = 'background:white;border:1px solid var(--brd);border-radius:4px;padding:10px 18px;flex:1;min-width:100px';
+  var html = '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">'
+    +'<div style="'+statBox+'">'
+    +'<div style="font-size:10px;letter-spacing:2px;color:var(--mut);text-transform:uppercase">Всього</div>'
+    +'<div style="font-size:24px;font-weight:700;'+MONO+'">'+total+'</div></div>'
+    +'<div style="background:rgba(44,95,138,.05);border:1px solid rgba(44,95,138,.2);border-radius:4px;padding:10px 18px;flex:1;min-width:100px">'
+    +'<div style="font-size:10px;letter-spacing:2px;color:var(--bl);text-transform:uppercase">Чекаю</div>'
+    +'<div style="font-size:24px;font-weight:700;'+MONO+';color:var(--bl)">'+waiting+'</div></div>'
+    +'<div style="background:rgba(45,122,79,.05);border:1px solid rgba(45,122,79,.2);border-radius:4px;padding:10px 18px;flex:1;min-width:100px">'
+    +'<div style="font-size:10px;letter-spacing:2px;color:var(--ok);text-transform:uppercase">Відповіли</div>'
+    +'<div style="font-size:24px;font-weight:700;'+MONO+';color:var(--ok)">'+replied+'</div></div>'
+    +'<div style="background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.3);border-radius:4px;padding:10px 18px;flex:1;min-width:100px">'
+    +'<div style="font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase">Прийнято</div>'
+    +'<div style="font-size:24px;font-weight:700;'+MONO+';color:var(--gold)">'+accepted+'</div></div>'
+    +'</div>';
+
+  html += '<div style="background:white;border:1px solid var(--brd);border-radius:4px;overflow:auto">'
+    +'<table class="tracker-table"><thead><tr>'
+    +'<th>Дата</th><th>Позиція</th><th>Постачальник</th><th>Продукт / Арт.</th>'
+    +'<th style="text-align:right">Ціна &euro;</th><th>Статус</th><th>Примітка</th><th></th>'
+    +'</tr></thead><tbody>';
+
+  var sorted = entries.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+
+  sorted.forEach(function(e){
+    var st = STATUS_MAP[e.status]||{label:e.status,cls:'st-sent'};
+    var priceStr = e.price
+      ? '<span style="'+MONO+';font-weight:700;color:var(--bl)">&euro;'+parseFloat(e.price).toFixed(2)+'</span>'
+      : '<span style="color:#ddd">&mdash;</span>';
+    var emailBtn = e.email
+      ? '<a href="mailto:'+e.email+'" style="font-size:12px;color:var(--bl);text-decoration:none;margin-right:4px" title="'+e.email+'">&#128231;</a>'
+      : '';
+    var eid = e.id;
+    html += '<tr>'
+      +'<td style="'+MONO+';font-size:10px;color:var(--mut);white-space:nowrap">'+formatDate(e.date)+'</td>'
+      +'<td style="font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+e.position+'">'+e.position+'</td>'
+      +'<td style="font-weight:600">'+e.supplier+'</td>'
+      +'<td style="font-size:11px;color:var(--mut);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(e.product||'')+'">'+( e.product||'&mdash;')+'</td>'
+      +'<td style="text-align:right">'+priceStr+'</td>'
+      +'<td><span class="status-badge '+st.cls+'">'+st.label+'</span></td>'
+      +'<td style="font-size:11px;color:var(--mut);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+emailBtn+(e.note||'&mdash;')+'</td>'
+      +'<td style="white-space:nowrap" id="acts_'+eid+'"></td>'
+      +'</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  tc.innerHTML = html;
+
+  // Add buttons after render
+  sorted.forEach(function(e){
+    var cell = document.getElementById('acts_'+e.id);
+    if(!cell) return;
+    var editBtn = document.createElement('button');
+    editBtn.innerHTML = '&#9998;';
+    editBtn.style.cssText = 'background:none;border:1px solid var(--brd);border-radius:2px;padding:3px 7px;cursor:pointer;font-size:11px;color:var(--mut);margin-right:4px';
+    editBtn.addEventListener('click', function(){ editEntry(e.id); });
+    var delBtn = document.createElement('button');
+    delBtn.innerHTML = '&#10005;';
+    delBtn.style.cssText = 'background:none;border:1px solid rgba(192,57,43,.3);border-radius:2px;padding:3px 7px;cursor:pointer;font-size:11px;color:var(--err)';
+    delBtn.addEventListener('click', function(){ deleteEntry(e.id); });
+    cell.appendChild(editBtn);
+    cell.appendChild(delBtn);
+  });
+}
+
+function formatDate(d){
+  if(!d) return '&mdash;';
+  try{ return new Date(d).toLocaleDateString('de',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
+  catch(ex){ return d; }
+}
+
+function openAddEntry(prefill){
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Новий запис';
+  document.getElementById('f_position').value = (prefill&&prefill.position)||'';
+  document.getElementById('f_supplier').value = (prefill&&prefill.supplier)||'';
+  document.getElementById('f_product').value = (prefill&&prefill.product)||'';
+  document.getElementById('f_price').value = '';
+  document.getElementById('f_status').value = 'sent';
+  document.getElementById('f_email').value = (prefill&&prefill.email)||'';
+  document.getElementById('f_note').value = '';
+  document.getElementById('entryModal').style.display = 'flex';
+  setTimeout(function(){document.getElementById('f_position').focus();},100);
+}
+
+function editEntry(id){
+  var entries = getEntries();
+  var entry = null;
+  for(var i=0;i<entries.length;i++){ if(entries[i].id===id){entry=entries[i];break;} }
+  if(!entry) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Редагувати запис';
+  document.getElementById('f_position').value = entry.position||'';
+  document.getElementById('f_supplier').value = entry.supplier||'';
+  document.getElementById('f_product').value = entry.product||'';
+  document.getElementById('f_price').value = entry.price||'';
+  document.getElementById('f_status').value = entry.status||'sent';
+  document.getElementById('f_email').value = entry.email||'';
+  document.getElementById('f_note').value = entry.note||'';
+  document.getElementById('entryModal').style.display = 'flex';
+}
+
+function closeModal(){
+  document.getElementById('entryModal').style.display = 'none';
+  editingId = null;
+}
+
+function saveEntry(){
+  var position = document.getElementById('f_position').value.trim();
+  var supplier = document.getElementById('f_supplier').value.trim();
+  if(!position||!supplier){ alert('Заповни Позицію і Постачальника!'); return; }
+  var entries = getEntries();
+  var oldDate = '';
+  if(editingId){
+    for(var i=0;i<entries.length;i++){
+      if(entries[i].id===editingId){ oldDate=entries[i].date; break; }
+    }
+  }
+  var entry = {
+    id: editingId||('e'+Date.now()),
+    date: editingId ? oldDate : new Date().toISOString(),
+    position: position,
+    supplier: supplier,
+    product: document.getElementById('f_product').value.trim(),
+    price: document.getElementById('f_price').value,
+    status: document.getElementById('f_status').value,
+    email: document.getElementById('f_email').value.trim(),
+    note: document.getElementById('f_note').value.trim()
+  };
+  if(editingId){
+    for(var j=0;j<entries.length;j++){
+      if(entries[j].id===editingId){ entries[j]=entry; break; }
+    }
+  } else {
+    entries.push(entry);
+  }
+  saveEntries(entries);
+  closeModal();
+  renderTracker();
+  updateTrackerBadge();
+}
+
+function deleteEntry(id){
+  if(!confirm('Видалити цей запис?')) return;
+  var entries = getEntries().filter(function(e){return e.id!==id;});
+  saveEntries(entries);
+  renderTracker();
+  updateTrackerBadge();
+}
+
+function updateTrackerBadge(){
+  var entries = getEntries();
+  var waiting = entries.filter(function(e){return e.status==='sent';}).length;
+  var tab = document.getElementById('trackTab');
+  if(!tab) return;
+  if(waiting>0){
+    tab.innerHTML = '&#128202; Трекер <span style="background:var(--err);color:white;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:4px">'+waiting+'</span>';
+  } else if(entries.length>0){
+    tab.innerHTML = '&#128202; Трекер <span style="background:var(--ok);color:white;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:4px">'+entries.length+'</span>';
+  }
+}
+
+var _origSwTab = swTab;
+swTab = function(tab, el){
+  if(tab==='track'){
+    document.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('active');});
+    el.classList.add('active');
+    openTrackerFull();
+    return;
+  }
+  _origSwTab(tab, el);
+};
+
+function quickAddToTracker(supplier, product, artikul, price){
+  var pos = selItem ? selItem.n : '';
+  openAddEntry({position:pos, supplier:supplier, product:product+(artikul?' / '+artikul:''), email:''});
+  if(price) document.getElementById('f_price').value = price;
+  openTrackerFull();
+}
+
+
+buildTree();
+updateTrackerBadge();
+</script>
+</body>
+</html>
