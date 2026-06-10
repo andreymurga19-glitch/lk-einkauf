@@ -2,7 +2,6 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
@@ -24,7 +23,6 @@ export default async function handler(req, res) {
       }
     };
 
-    // Add Google Search for AI recommendations
     if (type === 'ai') {
       body.tools = [{ google_search: {} }];
     }
@@ -39,12 +37,24 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
-    if (!response.ok) return res.status(200).json({ error: 'Gemini: ' + (data.error?.message || JSON.stringify(data)) });
+    if (!response.ok) {
+      return res.status(200).json({ error: 'Gemini: ' + (data.error?.message || JSON.stringify(data)) });
+    }
 
-    const text = data.candidates?.[0]?.content?.parts
-      ?.filter(p => p.text)
-      ?.map(p => p.text)
-      ?.join('') || '';
+    // Extract ALL text parts from ALL candidates
+    let text = '';
+    if (data.candidates && data.candidates.length > 0) {
+      for (const candidate of data.candidates) {
+        if (candidate.content && candidate.content.parts) {
+          for (const part of candidate.content.parts) {
+            if (part.text) text += part.text;
+          }
+        }
+      }
+    }
+
+    // Clean up markdown code blocks
+    text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
     return res.status(200).json({ text });
   } catch (err) {
