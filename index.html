@@ -586,7 +586,15 @@ async function doAI(){
     txt=txt.replace(/```json|```/g,"").trim();
     var j1=txt.indexOf("{"),j2=txt.lastIndexOf("}");
     if(j1>=0&&j2>=0) txt=txt.slice(j1,j2+1);
-    renderS(JSON.parse(txt),item);
+    else throw new Error("JSON не знайдено у відповіді AI");
+    var parsed;
+    try{ parsed=JSON.parse(txt); }
+    catch(pe){
+      // Try to fix common JSON issues
+      txt=txt.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
+      parsed=JSON.parse(txt);
+    }
+    renderS(parsed,item);
   }catch(err){
     pc.innerHTML='<div style="padding:20px"><p style="color:var(--err)">'+err.message+'</p>'
       +'<button id="retryBtn" style="margin-top:12px;padding:7px 18px;background:var(--gold);border:none;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Повторити</button></div>';
@@ -825,7 +833,13 @@ async function doInfo(){
     t2=t2.replace(/```json|```/g,"").trim();
     var ji=t2.indexOf("{"),je=t2.lastIndexOf("}");
     if(ji>=0&&je>=0) t2=t2.slice(ji,je+1);
-    var info=JSON.parse(t2);
+    else throw new Error("JSON не знайдено");
+    var info;
+    try{ info=JSON.parse(t2); }
+    catch(pe){
+      t2=t2.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
+      info=JSON.parse(t2);
+    }
     var desc=document.getElementById('infoDesc');
     if(!desc)return;
     var h='<div style="background:#fffbeb;border:1px solid #e8c96a;border-radius:4px;padding:11px 14px;margin-bottom:12px">'
