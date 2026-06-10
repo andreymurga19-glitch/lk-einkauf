@@ -557,76 +557,46 @@ async function doAI(){
   var plzL=document.getElementById('plzSel').selectedOptions[0].text;
   var plz=document.getElementById('plzSel').value;
   var pc=document.getElementById('pc');
-
-  pc.innerHTML='<div class="ldrow"><div class="spin"></div>'
-    +'<span id="ltxt">Шукаю реальні альтернативи в інтернеті...</span>'
-    +'<div class="pbw"><div class="pb" id="pbr"></div></div></div>';
+  pc.innerHTML='<div class="ldrow"><div class="spin"></div><span id="ltxt">Gemini шукає реальні альтернативи...</span><div class="pbw"><div class="pb" id="pbr"></div></div></div>';
   animP();
 
-  var sysMsg = "You are a procurement expert for German construction. "
-    + "Use web_search to find REAL alternative products from DIFFERENT manufacturers than the given product. "
-    + "Search for actual product pages with real prices and EAN/article numbers. "
-    + "NEVER invent prices, article numbers or URLs. "
-    + "If price is unknown write null. If article number unknown write null. "
-    + "Return ONLY valid JSON. All text fields in Ukrainian.";
+  var sysMsg="You are a procurement expert for German construction. Use google_search to find REAL alternative products from DIFFERENT manufacturers. NEVER invent prices or article numbers. Return ONLY valid JSON. All text in Ukrainian.";
 
-  var userMsg = "Знайди 4 реальних альтернативи цьому продукту від ІНШИХ виробників:\n"
-    + "Продукт: " + item.d + "\n"
-    + "UA: " + item.n + "\n"
-    + "Поточна ціна: " + (item.p||"?") + " EUR у " + (item.l||"невідомий") + "\n"
-    + "Регіон: " + plzL + " PLZ:" + plz + "\n\n"
-    + "Для кожної альтернативи знайди через веб-пошук:\n"
-    + "1. Точну назву продукту\n"
-    + "2. Пряме посилання на сторінку ТОВАРУ (не головна сторінка сайту)\n"
-    + "3. EAN або артикул (тільки якщо реально знайшов)\n"
-    + "4. Реальну ціну (тільки якщо знайшов на сторінці)\n"
-    + "5. Контакт для B2B запиту (email або форма)\n\n"
-    + "JSON:\n"
-    + '{"ai_tip":"коротка порада українською",'
-    + '"lieferanten":['
-    + '{"hersteller":"виробник",'
-    + '"produkt_name":"точна назва продукту",'
-    + '"ean":"EAN або null",'
-    + '"artikul":"артикул або null",'
-    + '"preis_brutto":null,'
-    + '"preis_netto":null,'
-    + '"einheit":"12,5L",'
-    + '"produkt_url":"ПРЯМЕ посилання на сторінку товару або null",'
-    + '"shop_name":"назва магазину де знайшов ціну",'
-    + '"kontakt_email":"email або null",'
-    + '"kontakt_form":"посилання на контактну форму або null",'
-    + '"lieferzeit":"термін або null",'
-    + '"vorteil":"перевага українською",'
-    + '"nassabrieb":"клас 1/2/3"}'
-    + ']}';
+  var lines=[
+    "Find 4 real suppliers in Germany for alternative products to:",
+    "Product DE: "+item.d,
+    "Product UA: "+item.n,
+    "Current price: "+(item.p||"?")+"€ at "+(item.l||"unknown"),
+    "Region: "+plzL+", PLZ: "+plz,
+    "",
+    "Search for alternatives from OTHER manufacturers (not the same brand).",
+    "Return ONLY JSON:",
+    '{"ai_tip":"recommendation in Ukrainian","lieferanten":[{"hersteller":"maker","produkt_name":"exact product name","ean":null,"artikul":null,"preis_brutto":null,"preis_netto":null,"einheit":"12,5L","produkt_url":null,"shop_name":"shop","kontakt_email":null,"kontakt_form":null,"lieferzeit":null,"vorteil":"advantage in Ukrainian","nassabrieb":"3"}]}'
+  ];
 
   try{
-    var r = await fetch("https://api.anthropic.com/v1/messages",{
+    var resp=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyACTLqrtR1mp9Ewx2qiNjEL4pZauNRsOiU",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
-        max_tokens:5000,
-        system: sysMsg,
-        tools:[{"type":"web_search_20250305","name":"web_search"}],
-        messages:[{role:"user",content:userMsg}]
+        system_instruction:{parts:[{text:sysMsg}]},
+        contents:[{role:"user",parts:[{text:lines.join("\n")}]}],
+        tools:[{google_search:{}}],
+        generationConfig:{temperature:0.1,maxOutputTokens:4000}
       })
     });
-    var data = await r.json();
-    if(!r.ok) throw new Error((data.error&&data.error.message)||"HTTP "+r.status);
-
-    var txt = '';
-    (data.content||[]).forEach(function(b){ if(b.type==='text') txt+=b.text; });
-    txt = txt.replace(/```json|```/g,'').trim();
-    var j1=txt.indexOf('{'), j2=txt.lastIndexOf('}');
+    var gdata=await resp.json();
+    if(!resp.ok) throw new Error((gdata.error&&gdata.error.message)||"Gemini error "+resp.status);
+    var txt=(gdata.candidates||[]).map(function(c){
+      return (c.content&&c.content.parts)?c.content.parts.filter(function(p){return p.text;}).map(function(p){return p.text;}).join(""):""
+    }).join("");
+    txt=txt.replace(/```json|```/g,"").trim();
+    var j1=txt.indexOf("{"),j2=txt.lastIndexOf("}");
     if(j1>=0&&j2>=0) txt=txt.slice(j1,j2+1);
-    renderS(JSON.parse(txt), item);
-  }catch(e){
-    pc.innerHTML='<div style="padding:20px">'
-      +'<p style="color:var(--err);font-size:13px">&#9888; '+e.message+'</p>'
-      +'<button id="retryBtn" style="margin-top:12px;padding:7px 18px;background:var(--gold);border:none;'
-      +'border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">'
-      +'&#8635; Повторити</button></div>';
+    renderS(JSON.parse(txt),item);
+  }catch(err){
+    pc.innerHTML='<div style="padding:20px"><p style="color:var(--err)">'+err.message+'</p>'
+      +'<button id="retryBtn" style="margin-top:12px;padding:7px 18px;background:var(--gold);border:none;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Повторити</button></div>';
     var rb=document.getElementById('retryBtn');
     if(rb) rb.addEventListener('click',doAI);
   }
@@ -830,57 +800,50 @@ async function doInfo(){
   if(!selItem)return;
   var item=selItem;
   var pc=document.getElementById('pc');
-  var wrap=document.createElement('div');
-  wrap.style.cssText='display:flex;gap:20px;flex-wrap:wrap';
-  var left=document.createElement('div');
-  left.style.cssText='flex:1;min-width:220px';
-  left.innerHTML='<table class="itbl">'
+  pc.innerHTML='<div style="display:flex;gap:20px;flex-wrap:wrap">'
+    +'<div style="flex:1;min-width:220px"><table class="itbl">'
     +'<tr><td>Назва UA</td><td><strong>'+item.n+'</strong></td></tr>'
     +'<tr><td>Bezeichnung DE</td><td>'+item.d+'</td></tr>'
-    +'<tr><td>Artikelnummer</td><td style="font-family:monospace">'+(item.a||'—')+'</td></tr>'
-    +'<tr><td>Ціна €</td><td style="color:var(--bl);font-weight:700">€'+(item.p?item.p.toFixed(2):'—')+'</td></tr>'
-    +'<tr><td>Постачальник</td><td>'+(item.l||'—')+'</td></tr>'
-    +'</table>';
-  var right=document.createElement('div');
-  right.id='infoDesc';
-  right.style.cssText='flex:2;min-width:300px';
-  right.innerHTML='<div class="ldrow"><div class="spin"></div><span>AI завантажує характеристики...</span></div>';
-  wrap.appendChild(left); wrap.appendChild(right);
-  pc.innerHTML=''; pc.appendChild(wrap);
+    +'<tr><td>Artikelnummer</td><td style="font-family:monospace">'+(item.a||"—")+'</td></tr>'
+    +'<tr><td>Ціна €</td><td style="color:var(--bl);font-weight:700">€'+(item.p?item.p.toFixed(2):"—")+'</td></tr>'
+    +'<tr><td>Постачальник</td><td>'+(item.l||"—")+'</td></tr>'
+    +'</table></div>'
+    +'<div style="flex:2;min-width:300px" id="infoDesc">'
+    +'<div class="ldrow"><div class="spin"></div><span>Gemini завантажує характеристики...</span></div>'
+    +'</div></div>';
 
+  var sysMsg="You are a construction materials expert. Respond ONLY with valid JSON. All values in Ukrainian. No double quotes inside strings.";
   var lines2=[
     "Product: "+item.d+" ("+item.n+")",
     "Article: "+(item.a||"unknown"),
-    "",
-    "Return ONLY valid JSON. All values in Ukrainian. No double quotes inside strings.",
-    '{"pryznachennya":"purpose in construction",',
-    '"vlastyvosti":["property 1","property 2","property 3","property 4","property 5"],',
-    '"zastosuvannya":"how and where to apply",',
-    '"norma_vytrat":"consumption per m2 or unit",',
-    '"zberigannya":"storage conditions",',
-    '"uvaga":"warning or empty string"}'
+    "Return ONLY JSON (all values in Ukrainian):",
+    '{"pryznachennya":"purpose","vlastyvosti":["p1","p2","p3","p4","p5"],"zastosuvannya":"how to apply","norma_vytrat":"consumption","zberigannya":"storage","uvaga":"warning or empty"}'
   ];
+
   try{
-    var r2=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",headers:{"Content-Type":"application/json"},
+    var resp2=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyACTLqrtR1mp9Ewx2qiNjEL4pZauNRsOiU",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:800,
-        system:"You are a construction materials expert. Respond ONLY with valid JSON. No text before or after. All values in Ukrainian language.",
-        messages:[{role:"user",content:lines2.join("\n")}]
+        system_instruction:{parts:[{text:sysMsg}]},
+        contents:[{role:"user",parts:[{text:lines2.join("\n")}]}],
+        generationConfig:{temperature:0.1,maxOutputTokens:1000}
       })
     });
-    var d2=await r2.json();
-    if(!r2.ok) throw new Error((d2.error&&d2.error.message)||"HTTP "+r2.status);
-    var t2=d2.content.map(function(c){return c.text||"";}).join("");
+    var gd2=await resp2.json();
+    if(!resp2.ok) throw new Error((gd2.error&&gd2.error.message)||"Gemini "+resp2.status);
+    var t2=(gd2.candidates||[]).map(function(c){
+      return (c.content&&c.content.parts)?c.content.parts.filter(function(p){return p.text;}).map(function(p){return p.text;}).join(""):""
+    }).join("");
     t2=t2.replace(/```json|```/g,"").trim();
-    var j2=t2.indexOf("{"),je2=t2.lastIndexOf("}");
-    if(j2>=0&&je2>=0) t2=t2.slice(j2,je2+1);
+    var ji=t2.indexOf("{"),je=t2.lastIndexOf("}");
+    if(ji>=0&&je>=0) t2=t2.slice(ji,je+1);
     var info=JSON.parse(t2);
     var desc=document.getElementById('infoDesc');
     if(!desc)return;
     var h='<div style="background:#fffbeb;border:1px solid #e8c96a;border-radius:4px;padding:11px 14px;margin-bottom:12px">'
       +'<div style="font-size:10px;letter-spacing:2px;color:#b8860b;text-transform:uppercase;margin-bottom:5px">Призначення</div>'
-      +'<div style="font-size:12px;color:#3a3000;line-height:1.7">'+(info.pryznachennya||'—')+'</div></div>';
+      +'<div style="font-size:12px;color:#3a3000;line-height:1.7">'+(info.pryznachennya||"—")+'</div></div>';
     if(info.vlastyvosti&&info.vlastyvosti.length){
       h+='<div style="background:white;border:1px solid var(--brd);border-radius:4px;padding:11px 14px;margin-bottom:12px">'
         +'<div style="font-size:10px;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-bottom:8px">Властивості</div>'
@@ -897,9 +860,9 @@ async function doInfo(){
     if(info.uvaga)         h+='<tr><td>⚠ Увага</td><td style="color:var(--err)">'+info.uvaga+'</td></tr>';
     h+='</table>';
     desc.innerHTML=h;
-  }catch(e2){
+  }catch(err2){
     var d=document.getElementById('infoDesc');
-    if(d) d.innerHTML='<p style="color:var(--err);font-size:12px">Помилка: '+e2.message+'</p>';
+    if(d) d.innerHTML='<p style="color:var(--err);font-size:12px">'+err2.message+'</p>';
   }
 }
 
