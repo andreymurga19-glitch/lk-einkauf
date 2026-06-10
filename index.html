@@ -563,15 +563,24 @@ async function doAI(){
   var sysMsg="You are a procurement expert for German construction. Use google_search to find REAL alternative products from DIFFERENT manufacturers. NEVER invent prices or article numbers. Return ONLY valid JSON. All text in Ukrainian.";
 
   var lines=[
-    "Find 4 real suppliers in Germany for alternative products to:",
-    "Product DE: "+item.d,
-    "Product UA: "+item.n,
-    "Current price: "+(item.p||"?")+"€ at "+(item.l||"unknown"),
+    "Du bist Einkaufsexperte für die deutsche Baubranche.",
+    "Suche mit google_search nach ECHTEN Alternativen zu diesem Produkt von ANDEREN Herstellern:",
+    "Produkt: "+item.d,
+    "Aktuelle Preis: "+(item.p||"?")+" EUR bei "+(item.l||"unbekannt"),
     "Region: "+plzL+", PLZ: "+plz,
     "",
-    "Search for alternatives from OTHER manufacturers (not the same brand).",
-    "Return ONLY JSON:",
-    '{"ai_tip":"recommendation in Ukrainian","lieferanten":[{"hersteller":"maker","produkt_name":"exact product name","ean":null,"artikul":null,"preis_brutto":null,"preis_netto":null,"einheit":"12,5L","produkt_url":null,"shop_name":"shop","kontakt_email":null,"kontakt_form":null,"lieferzeit":null,"vorteil":"advantage in Ukrainian","nassabrieb":"3"}]}'
+    "Für jeden Alternativ-Hersteller:",
+    "1. Suche auf der OFFIZIELLEN Herstellerwebseite nach dem genauen Artikelnummer (z.B. brillux.de, caparol.de, alpina.de)",
+    "2. Suche nach dem aktuellen Preis bei einem deutschen Onlineshop",
+    "3. Finde die direkte Produktseite URL",
+    "",
+    "WICHTIG: Nur Produkte mit Nassabriebklasse 3, weiß, matt - die gleiche Qualitätsstufe!",
+    "Wenn Artikelnummer nicht gefunden: null",
+    "Wenn Preis nicht gefunden: null",
+    "ALLE Texte auf UKRAINISCH.",
+    "",
+    "Antworte NUR mit JSON:",
+    '{"ai_tip":"порада українською: який постачальник найкращий і чому","lieferanten":[{"hersteller":"виробник","produkt_name":"точна назва з сайту виробника","ean":"EAN або null","artikul":"артикул з офіційного сайту виробника або null","preis_brutto":null,"preis_netto":null,"einheit":"12,5L","produkt_url":"пряме посилання на товар або null","shop_name":"де знайшов ціну","kontakt_email":null,"kontakt_form":null,"lieferzeit":"термін або null","vorteil":"перевага українською","nassabrieb":"3"}]}'
   ];
 
   try{
