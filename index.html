@@ -1286,7 +1286,40 @@ function renderSavingsReport(){
 }
 
 
+// Seed tracker with verified supplier contacts (one-time, if not already present)
+function seedTrackerEntries(){
+  var entries=getEntries();
+  var existingKeys=entries.map(function(e){return e.position+'|'+e.supplier;});
+  var seeds=[
+    {position:"Скло \u2014 \u0432\u0456\u043a\u043d\u0430 \u0440\u0435\u043c\u043e\u043d\u0442/\u0437\u0430\u043c\u0456\u043d\u0430", supplier:"AMANDI Glaserei & Kunsthandlung", product:"Glaserei seit 1998, Marktstr. 108, 26382 Wilhelmshaven", email:"info@glas-kunst-amandi.de", status:"sent", note:"Тел: 04421 21165. Майстерня з 1998р. Можуть знати постачальників каменю для підвіконників."},
+    {position:"Скло \u2014 \u0432\u0456\u043a\u043d\u0430 \u0440\u0435\u043c\u043e\u043d\u0442/\u0437\u0430\u043c\u0456\u043d\u0430", supplier:"Rudolf Kauer Glaserei", product:"Marktstr. 144, 26382 Wilhelmshaven", email:"", status:"sent", note:"Тел уточнити на glaserei.org"},
+    {position:"\u041c\u0440\u0430\u043c\u043e\u0440\u043d\u0456/\u0433\u0440\u0430\u043d\u0456\u0442\u043d\u0456 \u043f\u0456\u0434\u0432\u0456\u043a\u043e\u043d\u043d\u044f", supplier:"Klepfer Naturstein (Extertal)", product:"Fensterb\u00e4nke Granit/Marmor/Agglo nach Ma\u00df, доставка в Niedersachsen", email:"", status:"sent", note:"klepfer-naturstein.de - доставка в Hannover, Braunschweig, Osnabr\u00fcck регіон"},
+    {position:"\u041c\u0440\u0430\u043c\u043e\u0440\u043d\u0456/\u0433\u0440\u0430\u043d\u0456\u0442\u043d\u0456 \u043f\u0456\u0434\u0432\u0456\u043a\u043e\u043d\u043d\u044f", supplier:"Formyca (онлайн)", product:"Bianco Crystal 2cm Granit Fensterbank - \u20ac133", email:"", status:"sent", note:"formyca.de - ціни онлайн, замір на сайті"},
+    {position:"\u041c\u0440\u0430\u043c\u043e\u0440\u043d\u0456/\u0433\u0440\u0430\u043d\u0456\u0442\u043d\u0456 \u043f\u0456\u0434\u0432\u0456\u043a\u043e\u043d\u043d\u044f", supplier:"mymarmor.de (онлайн)", product:"300+ видів натурального каменю, конфігуратор на сайті", email:"", status:"sent", note:"Виготовлення на замір онлайн"}
+  ];
+  var added=0;
+  seeds.forEach(function(s){
+    var key=s.position+'|'+s.supplier;
+    if(existingKeys.indexOf(key)===-1){
+      entries.push({
+        id:'seed_'+Date.now()+'_'+added,
+        date:new Date().toISOString(),
+        position:s.position,
+        supplier:s.supplier,
+        product:s.product,
+        price:'',
+        status:s.status,
+        email:s.email,
+        note:s.note
+      });
+      added++;
+    }
+  });
+  if(added>0) saveEntries(entries);
+}
+
 buildTree();
+seedTrackerEntries();
 updateTrackerBadge();
 </script>
 </body>
