@@ -551,12 +551,49 @@ function animP(){
   setTimeout(go,200);
 }
 
-async function doAI(){
+var AI_CACHE_KEY='lk_ai_cache_v1';
+var AI_CACHE_DAYS=21; // 3 weeks
+
+function getCacheEntry(itemKey){
+  try{
+    var cache=JSON.parse(localStorage.getItem(AI_CACHE_KEY)||'{}');
+    var entry=cache[itemKey];
+    if(!entry) return null;
+    var age=(Date.now()-entry.ts)/(1000*60*60*24);
+    if(age>AI_CACHE_DAYS) return null;
+    return entry;
+  }catch(e){ return null; }
+}
+
+function setCacheEntry(itemKey,data){
+  try{
+    var cache=JSON.parse(localStorage.getItem(AI_CACHE_KEY)||'{}');
+    cache[itemKey]={data:data,ts:Date.now()};
+    localStorage.setItem(AI_CACHE_KEY,JSON.stringify(cache));
+  }catch(e){}
+}
+
+function getItemKey(item){
+  return (item.a||item.d||item.n||'').trim();
+}
+
+async function doAI(forceRefresh){
   if(!selItem)return;
   var item=selItem;
   var plzL=document.getElementById('plzSel').selectedOptions[0].text;
   var plz=document.getElementById('plzSel').value;
   var pc=document.getElementById('pc');
+  var itemKey=getItemKey(item);
+
+  // Check cache first
+  if(!forceRefresh){
+    var cached=getCacheEntry(itemKey);
+    if(cached){
+      renderS(cached.data,item,cached.ts);
+      return;
+    }
+  }
+
   pc.innerHTML='<div class="ldrow"><div class="spin"></div><span id="ltxt">Gemini шукає реальні альтернативи...</span><div class="pbw"><div class="pb" id="pbr"></div></div></div>';
   animP();
 
@@ -603,7 +640,8 @@ async function doAI(){
       txt=txt.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
       parsed=JSON.parse(txt);
     }
-    renderS(parsed,item);
+    setCacheEntry(itemKey,parsed);
+    renderS(parsed,item,Date.now());
   }catch(err){
     pc.innerHTML='<div style="padding:20px"><p style="color:var(--err)">'+err.message+'</p>'
       +'<button id="retryBtn" style="margin-top:12px;padding:7px 18px;background:var(--gold);border:none;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">Повторити</button></div>';
@@ -612,7 +650,7 @@ async function doAI(){
   }
 }
 
-function renderS(data, item){
+function renderS(data, item, cacheTs){
   var curP = item.p||0;
   var suppliers = data.lieferanten||[];
   var pc = document.getElementById('pc');
@@ -776,6 +814,9 @@ function renderS(data, item){
   wrap.appendChild(grid);
   pc.innerHTML = '';
   pc.appendChild(wrap);
+
+  var refreshBtn=document.getElementById('refreshAiBtn');
+  if(refreshBtn) refreshBtn.addEventListener('click',function(){ doAI(true); });
 }
 
 function buildMailText(s, item){
