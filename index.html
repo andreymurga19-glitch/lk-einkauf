@@ -177,7 +177,7 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
     <div><div class="logo-name" style="color:#000000">LK Bauservice</div><div class="logo-sub" style="color:#555555">Einkauf · Lieferanten</div></div>
   </div>
   <div class="tb-div"></div>
-  <span class="tb-ttl">Nomenclatura</span>
+  <span class="tb-ttl">НОМЕНКЛАТУРА</span>
   <div class="plz-pill">
     <span class="plz-lbl">&#128205;</span>
     <select class="plz-sel" id="plzSel">
@@ -192,7 +192,7 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
 
 <div class="main">
   <div class="sidebar">
-    <div class="tree-hdr">// Nomenclatura</div>
+    <div class="tree-hdr">// НОМЕНКЛАТУРА</div>
     <div id="treeRoot"></div>
   </div>
   <div class="content">
@@ -627,24 +627,27 @@ async function doAI(forceRefresh){
   var sysMsg="You are a procurement expert for German construction. Use google_search to find REAL alternative products from DIFFERENT manufacturers. NEVER invent prices or article numbers. Return ONLY valid JSON. All text in Ukrainian.";
 
   var lines=[
-    "Du bist Einkaufsexperte für die deutsche Baubranche.",
-    "Suche mit google_search nach ECHTEN Alternativen zu diesem Produkt von ANDEREN Herstellern:",
+    "Du bist Einkaufsexperte fur die deutsche Baubranche, Standort Salzgitter.",
+    "Aufgabe: Finde die GUNSTIGSTEN Bezugsquellen fur folgendes Produkt:",
     "Produkt: "+item.d,
     "Aktuelle Preis: "+(item.p||"?")+" EUR bei "+(item.l||"unbekannt"),
     "Region: "+plzL+", PLZ: "+plz,
     "",
-    "Für jeden Alternativ-Hersteller:",
-    "1. Suche auf der OFFIZIELLEN Herstellerwebseite nach dem genauen Artikelnummer (z.B. brillux.de, caparol.de, alpina.de)",
-    "2. Suche nach dem aktuellen Preis bei einem deutschen Onlineshop",
-    "3. Finde die direkte Produktseite URL",
+    "SUCHREIHENFOLGE (in dieser Priorität):",
+    "1. PRUFE ZUERST: Hat "+(item.l||"Mega eG")+" eine gunstigere Variante oder Grosspackung dieses Produkts? Suche '"+(item.l||"Mega eG")+" "+item.d+"'",
+    "2. REGIONALE GROSSHANDLER in/um Salzgitter und Braunschweig: Hornbach, Bauhaus, OBI, Globus Baumarkt, Hagebau, Toom - suche mit 'Salzgitter' oder 'Braunschweig' im Suchbegriff",
+    "3. AMAZON.DE und andere grosse Online-Handler - suche nach Bulk/Mehrpack Angeboten",
     "",
-    "WICHTIG: Nur Produkte mit Nassabriebklasse 3, weiß, matt - die gleiche Qualitätsstufe!",
-    "Wenn Artikelnummer nicht gefunden: null",
-    "Wenn Preis nicht gefunden: null",
-    "ALLE Texte auf UKRAINISCH.",
+    "WICHTIGE REGELN:",
+    "- IGNORIERE Nischenhandler mit unrealistisch hohen Preisen (mehr als 50% teurer als aktuell)",
+    "- Bevorzuge Anbieter mit Lieferung/Abholung in der Region Salzgitter/Braunschweig",
+    "- Bei Farben: gleiche Qualitätsstufe (Nassabriebklasse) wie das Original beibehalten",
+    "- Wenn Artikelnummer nicht gefunden: null",
+    "- Wenn Preis nicht gefunden: null",
+    "- ALLE Texte auf UKRAINISCH",
     "",
-    "Antworte NUR mit JSON:",
-    '{"ai_tip":"порада українською: який постачальник найкращий і чому","lieferanten":[{"hersteller":"виробник","produkt_name":"точна назва з сайту виробника","ean":"EAN або null","artikul":"артикул з офіційного сайту виробника або null","preis_brutto":null,"preis_netto":null,"einheit":"12,5L","produkt_url":"пряме посилання на товар або null","shop_name":"де знайшов ціну","kontakt_email":null,"kontakt_form":null,"lieferzeit":"термін або null","vorteil":"перевага українською","nassabrieb":"3"}]}'
+    "Antworte NUR mit JSON, maximal 5 Lieferanten, sortiert nach Preis (gunstigster zuerst):",
+    '{"ai_tip":"порада українською: який постачальник найкращий і чому","lieferanten":[{"hersteller":"виробник або магазин","produkt_name":"точна назва","ean":"EAN або null","artikul":"артикул або null","preis_brutto":null,"preis_netto":null,"einheit":"одиниця","produkt_url":"посилання або null","shop_name":"де знайдено ціну","kontakt_email":null,"kontakt_form":null,"lieferzeit":"термін або null","vorteil":"перевага українською","nassabrieb":"3"}]}'
   ];
 
   try{
