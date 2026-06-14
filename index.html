@@ -296,7 +296,7 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
   <button class="menu-toggle" onclick="toggleSidebar()">&#9776;</button>
   <div style="display:flex;align-items:center;gap:12px">
     <img src="/assets/lk-icon.png" alt="LK" style="height:36px;width:auto;flex-shrink:0">
-    <div><div class="logo-name" style="color:#e8e8e8">LK BAUSERVICE</div><div class="logo-sub" style="color:#f0b429">Склад &middot; Закупки</div></div>
+    <div><div class="logo-name" style="color:#e8e8e8">LK BAUSERVICE</div><div class="logo-sub" style="color:#f0b429">Bauleistungen aus einer Hand</div></div>
   </div>
   <div class="tb-div"></div>
   <span class="tb-ttl">НОМЕНКЛАТУРА</span>
@@ -327,7 +327,7 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
   <div class="content">
     <div class="tbl-area">
       <div class="wstate" id="ws">
-        <img src="/assets/lk-icon.png" alt="LK" style="height:80px;width:auto;opacity:.5;margin-bottom:10px">
+        <img src="/assets/office.jpg" alt="LK Bauservice" style="max-width:420px;width:100%;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.12);margin-bottom:18px">
         <p class="wt">Склад і Закупівлі</p>
         <p class="ws">Вибери категорію зліва &mdash; клікни на позицію для AI-аналізу</p>
       </div>
@@ -1601,7 +1601,28 @@ function saveTask(type){
 function toggleTaskDone(id){
   var tasks = getTasks();
   var t = tasks.find(function(x){return x.id===id;});
-  if(t){ t.done = !t.done; saveTasks(tasks); renderTasks(); }
+  if(t){
+    t.done = !t.done;
+    t.completedAt = t.done ? Date.now() : null;
+    saveTasks(tasks);
+    renderTasks();
+  }
+}
+
+function getWeekKey(ts){
+  var d = new Date(ts);
+  // ISO week: Monday start
+  var day = (d.getDay()+6)%7; // 0=Mon
+  var monday = new Date(d);
+  monday.setDate(d.getDate()-day);
+  monday.setHours(0,0,0,0);
+  return monday.getTime();
+}
+function formatWeekLabel(ts){
+  var start = new Date(ts);
+  var end = new Date(ts + 6*86400000);
+  var fmt = function(d){ return ('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2); };
+  return fmt(start)+' \u2013 '+fmt(end);
 }
 
 function deleteTask(id){
@@ -1626,30 +1647,67 @@ function renderTasks(){
     return;
   }
 
-  var globalTasks = tasks.filter(function(t){return t.type==='global';});
-  var localTasks = tasks.filter(function(t){return t.type==='local';});
+  var pending = tasks.filter(function(t){return !t.done;});
+  var done = tasks.filter(function(t){return t.done;});
 
   var html = '';
 
-  function renderGroup(title, icon, arr){
-    if(!arr.length) return '';
-    var h = '<div class="task-section-hdr">'+icon+' '+title+' ('+arr.length+')</div>';
-    arr.forEach(function(t){
-      var dateStr = new Date(t.created).toLocaleDateString('uk', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-      h += '<div class="task-item '+t.type+(t.done?' done':'')+'">'
-        +'<div class="task-check'+(t.done?' checked':'')+'" onclick="toggleTaskDone(\''+t.id+'\')">'+(t.done?'&#10003;':'')+'</div>'
-        +'<div class="task-body">'
-        +'<div class="task-text">'+t.text+'</div>'
-        +'<div class="task-meta">'+dateStr+'</div>'
-        +'</div>'
-        +'<button class="task-del" onclick="deleteTask(\''+t.id+'\')">&times;</button>'
-        +'</div>';
-    });
-    return h;
+  function taskRow(t, showCompletedDate){
+    var dateStr = new Date(t.created).toLocaleDateString('uk', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    var metaStr = '\u0441\u0442\u0432\u043e\u0440\u0435\u043d\u043e: '+dateStr;
+    if(showCompletedDate && t.completedAt){
+      metaStr += ' &middot; \u0432\u0438\u043a\u043e\u043d\u0430\u043d\u043e: '+new Date(t.completedAt).toLocaleDateString('uk', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    }
+    var badgeHtml = '<span class="task-badge '+t.type+'">'+(t.type==='global'?'\u0433\u043b\u043e\u0431\u0430\u043b\u044c\u043d\u0430':'\u043b\u043e\u043a\u0430\u043b\u044c\u043d\u0430')+'</span>';
+    return '<div class="task-item '+t.type+(t.done?' done':'')+'">'
+      +'<div class="task-check'+(t.done?' checked':'')+'" onclick="toggleTaskDone(\''+t.id+'\')">'+(t.done?'&#10003;':'')+'</div>'
+      +'<div class="task-body">'
+      +'<div class="task-text">'+badgeHtml+t.text+'</div>'
+      +'<div class="task-meta">'+metaStr+'</div>'
+      +'</div>'
+      +'<button class="task-del" onclick="deleteTask(\''+t.id+'\')">&times;</button>'
+      +'</div>';
   }
 
-  html += renderGroup('Глобальні задачі', '&#11088;', globalTasks);
-  html += renderGroup('Локальні задачі', '&#128204;', localTasks);
+  // PENDING SECTION
+  if(pending.length){
+    var pGlobal = pending.filter(function(t){return t.type==='global';});
+    var pLocal = pending.filter(function(t){return t.type==='local';});
+    html += '<div class="task-section-hdr" style="color:#b8780a">&#9203; \u041d\u0435 \u0432\u0438\u043a\u043e\u043d\u0430\u043d\u0456 ('+pending.length+')</div>';
+    pGlobal.concat(pLocal).forEach(function(t){ html += taskRow(t,false); });
+  }
+
+  // COMPLETED SECTION with weekly analytics
+  if(done.length){
+    // Group by week
+    var weekGroups = {};
+    done.forEach(function(t){
+      var wk = getWeekKey(t.completedAt||t.created);
+      if(!weekGroups[wk]) weekGroups[wk] = [];
+      weekGroups[wk].push(t);
+    });
+    var weekKeys = Object.keys(weekGroups).map(Number).sort(function(a,b){return b-a;});
+
+    html += '<div class="task-section-hdr" style="color:var(--ok);margin-top:24px">&#9989; \u0412\u0438\u043a\u043e\u043d\u0430\u043d\u0456 ('+done.length+')</div>';
+
+    // Weekly summary chips
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">';
+    weekKeys.forEach(function(wk){
+      var arr = weekGroups[wk];
+      var g = arr.filter(function(t){return t.type==='global';}).length;
+      var l = arr.filter(function(t){return t.type==='local';}).length;
+      html += '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:8px 12px;font-size:11px;color:#15803d;font-family:\'JetBrains Mono\',monospace">'
+        +'<strong>'+formatWeekLabel(wk)+'</strong><br>'
+        +'\u0432\u0441\u044c\u043e\u0433\u043e: '+arr.length+' (\u22c6'+g+' / \u25cf'+l+')'
+        +'</div>';
+    });
+    html += '</div>';
+
+    weekKeys.forEach(function(wk){
+      html += '<div style="font-size:10px;color:var(--mut);font-weight:700;letter-spacing:1px;margin:10px 0 6px;font-family:\'JetBrains Mono\',monospace">'+formatWeekLabel(wk)+'</div>';
+      weekGroups[wk].forEach(function(t){ html += taskRow(t,true); });
+    });
+  }
 
   list.innerHTML = html;
 }
