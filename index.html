@@ -706,33 +706,27 @@ async function doAI(forceRefresh){
   pc.innerHTML='<div class="ldrow"><div class="spin"></div><span id="ltxt">Gemini шукає реальні альтернативи...</span><div class="pbw"><div class="pb" id="pbr"></div></div></div>';
   animP();
 
-  var sysMsg="You are a procurement expert for German construction. Use google_search to find REAL alternative products from DIFFERENT manufacturers. NEVER invent prices or article numbers. Return ONLY valid JSON. All text in Ukrainian.";
+  var sysMsg="";
+
+  var lwsReq = item.lws_req ? item.lws_req : "";
+  var lwsCatalogInfo = "";
+  if(item.catalog && item.catalog.length){
+    lwsCatalogInfo = "LWS-Katalog Referenz (bereits geprueft, NICHT erneut suchen):\n"
+      + item.catalog.map(function(c){return "- "+c.name+(c.artikul?" Art.: "+c.artikul:"")+(c.preis?" "+c.preis+" EUR":"");}).join("\n");
+  }
 
   var lines=[
-    "Du bist Einkaufsexperte fur die deutsche Baubranche, Standort Salzgitter.",
-    "Aufgabe: Finde die GUNSTIGSTEN Bezugsquellen fur folgendes Produkt:",
-    "Produkt: "+item.d,
-    "Aktuelle Preis: "+(item.p||"?")+" EUR bei "+(item.l||"unbekannt"),
+    "PRODUKT-DATEN AUS 1C:",
+    "Bezeichnung: "+item.d,
+    "UA Name: "+item.n,
+    "Aktueller Preis: "+(item.p||"unbekannt")+" EUR bei "+(item.l||"unbekannt"),
     "Region: "+plzL+", PLZ: "+plz,
+    lwsReq ? ("LWS-Anforderung: "+lwsReq) : "",
+    lwsCatalogInfo,
     "",
-    "SUCHREIHENFOLGE (in dieser Priorität):",
-    "1. PRUFE ZUERST: Hat "+(item.l||"Mega eG")+" eine gunstigere Variante oder Grosspackung dieses Produkts? Suche '"+(item.l||"Mega eG")+" "+item.d+"'",
-    "2. REGIONALE GROSSHANDLER in/um Salzgitter und Braunschweig: Hornbach, Bauhaus, OBI, Globus Baumarkt, Hagebau, Toom - suche mit 'Salzgitter' oder 'Braunschweig' im Suchbegriff",
-    "3. AMAZON.DE und andere grosse Online-Handler - suche nach Bulk/Mehrpack Angeboten",
-    "",
-    "WICHTIGE REGELN:",
-    "- IGNORIERE Nischenhandler mit unrealistisch hohen Preisen (mehr als 50% teurer als aktuell)",
-    "- Bevorzuge Anbieter mit Lieferung/Abholung in der Region Salzgitter/Braunschweig",
-    "- Bei Farben: gleiche Qualitätsstufe (Nassabriebklasse) wie das Original beibehalten",
-    "- Wenn Artikelnummer nicht gefunden: null",
-    "- Wenn Preis nicht gefunden: null",
-    "- ALLE Texte auf UKRAINISCH",
-    "",
-    "Antworte NUR mit JSON, maximal 5 Lieferanten, sortiert nach Preis (gunstigster zuerst):",
-    '{"ai_tip":"порада українською: який постачальник найкращий і чому","lieferanten":[{"hersteller":"виробник або магазин","produkt_name":"точна назва","ean":"EAN або null","artikul":"артикул або null","preis_brutto":null,"preis_netto":null,"einheit":"одиниця","produkt_url":"посилання або null","shop_name":"де знайдено ціну","kontakt_email":null,"kontakt_form":null,"lieferzeit":"термін або null","vorteil":"перевага українською","nassabrieb":"3"}]}'
-  ];
-
-  try{
+    "Fuehre die Analyse und Recherche gemaess deinen Systemanweisungen durch.",
+    "WICHTIG: Suche nach ALTERNATIVEN Produkten/Marken mit der GLEICHEN Qualitaetsklasse (z.B. Nassabriebklasse), NICHT nach Wiederverkaeufern des exakt gleichen Produkts '"+item.d+"'."
+  ].filter(function(l){return l;});  try{
     var resp=await fetch("/api/search",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
