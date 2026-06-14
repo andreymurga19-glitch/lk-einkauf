@@ -241,6 +241,54 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
   .topbar > button{padding:4px 6px !important;font-size:8px !important;}
 }
 
+
+/* SECTION NAV */
+.section-nav{display:flex;gap:2px;background:#e8ecf2;padding:0 16px;border-bottom:1px solid var(--brd);flex-shrink:0;}
+.sec-btn{padding:9px 18px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;font-family:"JetBrains Mono",monospace;transition:all .15s;}
+.sec-btn:hover{color:var(--txt);background:rgba(0,0,0,.02);}
+.sec-btn.active{color:#1a2332;border-bottom-color:var(--gold);background:#fff;}
+@media (max-width:860px){.section-nav{padding:0 8px;overflow-x:auto;}.sec-btn{padding:9px 12px;font-size:10px;flex-shrink:0;}}
+
+/* TASKS VIEW */
+.tasks-wrap{flex:1;overflow-y:auto;background:var(--bg);padding:20px;}
+.tasks-inner{max-width:760px;margin:0 auto;}
+.mic-card{background:#fff;border:1px solid var(--brd);border-radius:10px;padding:24px;text-align:center;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,.04);}
+.mic-btn{width:84px;height:84px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));font-size:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;transition:all .2s;box-shadow:0 4px 16px rgba(240,180,41,.3);}
+.mic-btn:active{transform:scale(.93);}
+.mic-btn.recording{background:linear-gradient(135deg,#dc2626,#ef4444);animation:pulse-rec 1.2s infinite;}
+@keyframes pulse-rec{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4);}50%{box-shadow:0 0 0 16px rgba(220,38,38,0);}}
+.mic-status{font-size:12px;color:var(--mut);font-family:"JetBrains Mono",monospace;letter-spacing:1px;}
+.mic-transcript{margin-top:14px;font-size:15px;color:var(--txt);min-height:24px;line-height:1.5;}
+.mic-actions{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+.mic-act-btn{padding:9px 20px;border-radius:6px;border:1px solid var(--brd);background:#fff;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .15s;}
+.mic-act-btn.local{border-color:#3b82f6;color:#1d4ed8;}
+.mic-act-btn.local:hover{background:#eff6ff;}
+.mic-act-btn.global{border-color:var(--gold);color:#b8780a;}
+.mic-act-btn.global:hover{background:#fffbeb;}
+.mic-act-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+.task-section-hdr{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);font-weight:700;margin:18px 0 8px;font-family:"JetBrains Mono",monospace;display:flex;align-items:center;gap:8px;}
+.task-item{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid var(--brd);border-radius:8px;padding:12px 14px;margin-bottom:8px;transition:all .15s;}
+.task-item.done{opacity:.5;}
+.task-item.global{border-left:3px solid var(--gold);}
+.task-item.local{border-left:3px solid #3b82f6;}
+.task-check{width:20px;height:20px;border-radius:5px;border:2px solid var(--brd);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:1px;background:#fff;transition:all .15s;}
+.task-check.checked{background:var(--ok);border-color:var(--ok);color:#fff;}
+.task-body{flex:1;}
+.task-text{font-size:13px;color:var(--txt);line-height:1.5;}
+.task-item.done .task-text{text-decoration:line-through;}
+.task-meta{font-size:10px;color:var(--mut);margin-top:4px;font-family:"JetBrains Mono",monospace;}
+.task-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:3px;text-transform:uppercase;margin-right:6px;}
+.task-badge.global{background:rgba(240,180,41,.15);color:#b8780a;}
+.task-badge.local{background:#eff6ff;color:#1d4ed8;}
+.task-del{background:none;border:none;color:var(--mut);cursor:pointer;font-size:16px;padding:2px 6px;flex-shrink:0;}
+.task-del:hover{color:var(--err);}
+.tasks-empty{text-align:center;padding:40px 20px;color:var(--mut);}
+.tasks-empty .wi{font-size:40px;opacity:.3;margin-bottom:10px;}
+
+.coming-soon{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--mut);text-align:center;padding:40px;}
+.coming-soon .wi{font-size:56px;opacity:.25;margin-bottom:16px;}
+
 </style>
 </head>
 <body>
@@ -264,7 +312,13 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
   </div>
 </div>
 
-<div class="main">
+<div class="section-nav">
+  <button class="sec-btn active" id="secBtnZakup" onclick="switchSection('zakup')">&#128230; Закупки</button>
+  <button class="sec-btn" id="secBtnSklad" onclick="switchSection('sklad')">&#127981; Склад</button>
+  <button class="sec-btn" id="secBtnTasks" onclick="switchSection('tasks')">&#9989; Задачі<span id="taskBadgeNav"></span></button>
+</div>
+
+<div class="main" id="secZakup">
   <div class="sidebar" id="sidebar">
     <div class="tree-hdr">// НОМЕНКЛАТУРА</div>
     <div id="treeRoot"></div>
@@ -319,6 +373,29 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
       <div class="ptab" onclick="swTab('info',this)">&#8505; Інфо</div>
     </div>
     <div class="pc" id="pc"></div>
+  </div>
+</div>
+
+<!-- SKLAD SECTION (placeholder) -->
+<div class="coming-soon" id="secSklad" style="display:none">
+  <div class="wi">&#127981;</div>
+  <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#5a5447;margin-bottom:8px">Склад &mdash; скоро</div>
+  <div style="font-size:13px;max-width:380px">Тут буде модуль складу: розміщення товарів, QR/штрих-код сканування, прив'язка до номенклатури 1С. Очікуємо фото складу для проєктування структури.</div>
+</div>
+
+<!-- TASKS SECTION -->
+<div class="tasks-wrap" id="secTasks" style="display:none">
+  <div class="tasks-inner">
+    <div class="mic-card">
+      <button class="mic-btn" id="micBtn" onclick="toggleMic()">&#127908;</button>
+      <div class="mic-status" id="micStatus">Натисни і скажи задачу</div>
+      <div class="mic-transcript" id="micTranscript"></div>
+      <div class="mic-actions" id="micActions" style="display:none">
+        <button class="mic-act-btn local" id="saveLocalBtn" onclick="saveTask('local')">&#128204; Локальна задача</button>
+        <button class="mic-act-btn global" id="saveGlobalBtn" onclick="saveTask('global')">&#11088; Глобальна задача</button>
+      </div>
+    </div>
+    <div id="tasksList"></div>
   </div>
 </div>
 
@@ -1403,7 +1480,183 @@ function toggleSidebar(){
   document.getElementById('sidebarOverlay').classList.toggle('open');
 }
 
+// ═══════════════════════════════════
+// SECTION NAVIGATION
+// ═══════════════════════════════════
+function switchSection(sec){
+  document.getElementById('secZakup').style.display = sec==='zakup' ? 'flex' : 'none';
+  document.getElementById('secSklad').style.display = sec==='sklad' ? 'flex' : 'none';
+  document.getElementById('secTasks').style.display = sec==='tasks' ? 'block' : 'none';
+  ['secBtnZakup','secBtnSklad','secBtnTasks'].forEach(function(id){
+    document.getElementById(id).classList.remove('active');
+  });
+  document.getElementById('secBtn'+sec.charAt(0).toUpperCase()+sec.slice(1)).classList.add('active');
+  if(sec==='tasks') renderTasks();
+}
+
+// ═══════════════════════════════════
+// TASKS - VOICE INPUT
+// ═══════════════════════════════════
+var TASKS_KEY = 'lk_tasks_v1';
+var recognition = null;
+var isRecording = false;
+var currentTranscript = '';
+
+function getTasks(){
+  try{ return JSON.parse(localStorage.getItem(TASKS_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function saveTasks(arr){
+  localStorage.setItem(TASKS_KEY, JSON.stringify(arr));
+}
+
+function toggleMic(){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    document.getElementById('micStatus').textContent = 'Голосовий ввід не підтримується (потрібен Chrome)';
+    return;
+  }
+  if(isRecording){
+    if(recognition) recognition.abort();
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micStatus').textContent = currentTranscript ? 'Готово — обери тип задачі' : 'Натисни і скажи задачу';
+    return;
+  }
+
+  if(recognition){ try{ recognition.abort(); }catch(e){} }
+  recognition = new SR();
+  recognition.lang = 'uk-UA';
+  recognition.maxAlternatives = 5;
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  currentTranscript = '';
+  document.getElementById('micTranscript').textContent = '';
+  document.getElementById('micActions').style.display = 'none';
+  document.getElementById('micStatus').textContent = '\u041f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u044f\u044e... \u0433\u043e\u0432\u043e\u0440\u0438';
+
+  recognition.onresult = function(event){
+    var finalText = '';
+    var interim = '';
+    for(var i=0;i<event.results.length;i++){
+      if(event.results[i].isFinal) finalText += event.results[i][0].transcript;
+      else interim += event.results[i][0].transcript;
+    }
+    currentTranscript = (finalText + ' ' + interim).trim();
+    document.getElementById('micTranscript').textContent = currentTranscript;
+    if(finalText.trim()){
+      document.getElementById('micActions').style.display = 'flex';
+    }
+  };
+
+  recognition.onerror = function(event){
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micStatus').textContent = 'Помилка: '+event.error+'. Спробуй ще раз.';
+  };
+
+  recognition.onend = function(){
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    if(currentTranscript.trim()){
+      document.getElementById('micStatus').textContent = 'Готово — обери тип задачі';
+      document.getElementById('micActions').style.display = 'flex';
+    } else {
+      document.getElementById('micStatus').textContent = 'Не почув нічого. Натисни і спробуй ще раз';
+    }
+  };
+
+  try{
+    recognition.start();
+    isRecording = true;
+    document.getElementById('micBtn').classList.add('recording');
+  }catch(e){
+    document.getElementById('micStatus').textContent = 'Помилка запуску мікрофона';
+  }
+}
+
+function saveTask(type){
+  var text = currentTranscript.trim();
+  if(!text) return;
+  var tasks = getTasks();
+  tasks.unshift({
+    id: 'task_'+Date.now(),
+    text: text,
+    type: type, // 'local' | 'global'
+    done: false,
+    created: Date.now()
+  });
+  saveTasks(tasks);
+
+  // Reset mic UI
+  currentTranscript = '';
+  document.getElementById('micTranscript').textContent = '';
+  document.getElementById('micActions').style.display = 'none';
+  document.getElementById('micStatus').textContent = '\u2713 \u0417\u0430\u043f\u0438\u0441\u0430\u043d\u043e! \u041d\u0430\u0442\u0438\u0441\u043d\u0438 \u0456 \u0441\u043a\u0430\u0436\u0438 \u043d\u0430\u0441\u0442\u0443\u043f\u043d\u0443';
+
+  renderTasks();
+}
+
+function toggleTaskDone(id){
+  var tasks = getTasks();
+  var t = tasks.find(function(x){return x.id===id;});
+  if(t){ t.done = !t.done; saveTasks(tasks); renderTasks(); }
+}
+
+function deleteTask(id){
+  var tasks = getTasks().filter(function(x){return x.id!==id;});
+  saveTasks(tasks);
+  renderTasks();
+}
+
+function renderTasks(){
+  var tasks = getTasks();
+  var list = document.getElementById('tasksList');
+
+  // Update nav badge with count of undone global tasks
+  var globalUndone = tasks.filter(function(t){return t.type==='global' && !t.done;}).length;
+  var badge = document.getElementById('taskBadgeNav');
+  badge.innerHTML = globalUndone>0
+    ? ' <span style="background:var(--gold);color:#1a2332;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:2px">'+globalUndone+'</span>'
+    : '';
+
+  if(!tasks.length){
+    list.innerHTML = '<div class="tasks-empty"><div class="wi">&#127908;</div><p style="font-size:13px">Задач немає. Натисни мікрофон і скажи задачу голосом.</p></div>';
+    return;
+  }
+
+  var globalTasks = tasks.filter(function(t){return t.type==='global';});
+  var localTasks = tasks.filter(function(t){return t.type==='local';});
+
+  var html = '';
+
+  function renderGroup(title, icon, arr){
+    if(!arr.length) return '';
+    var h = '<div class="task-section-hdr">'+icon+' '+title+' ('+arr.length+')</div>';
+    arr.forEach(function(t){
+      var dateStr = new Date(t.created).toLocaleDateString('uk', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      h += '<div class="task-item '+t.type+(t.done?' done':'')+'">'
+        +'<div class="task-check'+(t.done?' checked':'')+'" onclick="toggleTaskDone(\''+t.id+'\')">'+(t.done?'&#10003;':'')+'</div>'
+        +'<div class="task-body">'
+        +'<div class="task-text">'+t.text+'</div>'
+        +'<div class="task-meta">'+dateStr+'</div>'
+        +'</div>'
+        +'<button class="task-del" onclick="deleteTask(\''+t.id+'\')">&times;</button>'
+        +'</div>';
+    });
+    return h;
+  }
+
+  html += renderGroup('Глобальні задачі', '&#11088;', globalTasks);
+  html += renderGroup('Локальні задачі', '&#128204;', localTasks);
+
+  list.innerHTML = html;
+}
+
+
 buildTree();
+renderTasks();
 seedTrackerEntries();
 updateTrackerBadge();
 </script>
