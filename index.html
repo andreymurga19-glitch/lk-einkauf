@@ -326,10 +326,9 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
   <div class="content">
     <div class="tbl-area">
-      <div class="wstate" id="ws">
-        <img src="/assets/office.jpg" alt="LK Bauservice" style="max-width:420px;width:100%;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.12);margin-bottom:18px">
-        <p class="wt">Склад і Закупівлі</p>
-        <p class="ws">Вибери категорію зліва &mdash; клікни на позицію для AI-аналізу</p>
+      <div class="wstate" id="ws" style="padding:0;align-items:stretch;justify-content:flex-start">
+        <img src="/assets/office.jpg" alt="LK Bauservice" style="width:100%;height:auto;max-height:70vh;object-fit:cover;border-radius:0 0 12px 12px;box-shadow:0 4px 24px rgba(0,0,0,.12)">
+        <p class="ws" style="margin-top:18px">Вибери категорію зліва &mdash; клікни на позицію для AI-аналізу</p>
       </div>
         <p class="wt">Gruppe auswählen</p>
         <p class="ws">Вибери категорію зліва &#8212; клікни на позицію для AI-аналізу</p>
@@ -377,10 +376,12 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
 </div>
 
 <!-- SKLAD SECTION (placeholder) -->
-<div class="coming-soon" id="secSklad" style="display:none">
-  <div class="wi">&#127981;</div>
-  <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#5a5447;margin-bottom:8px">Склад &mdash; скоро</div>
-  <div style="font-size:13px;max-width:380px">Тут буде модуль складу: розміщення товарів, QR/штрих-код сканування, прив'язка до номенклатури 1С. Очікуємо фото складу для проєктування структури.</div>
+<div class="coming-soon" id="secSklad" style="display:none;align-items:stretch;justify-content:flex-start;padding:0">
+  <img src="/assets/warehouse.jpg" alt="LK Bauservice Склад" style="width:100%;height:auto;max-height:70vh;object-fit:cover;border-radius:0 0 12px 12px;box-shadow:0 4px 24px rgba(0,0,0,.12)">
+  <div style="text-align:center;padding:24px 24px 40px">
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#5a5447;margin-bottom:8px">Склад &mdash; модуль у розробці</div>
+    <div style="font-size:13px;max-width:380px;margin:0 auto;color:var(--mut)">Тут буде розміщення товарів, QR/штрих-код сканування, прив'язка до номенклатури 1С.</div>
+  </div>
 </div>
 
 <!-- TASKS SECTION -->
