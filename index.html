@@ -768,196 +768,194 @@ function renderS(data, item, cacheTs){
   var pc = document.getElementById('pc');
   var wrap = document.createElement('div');
 
-  // AI TIP
+  // AI TIP + caching info
   var tip = document.createElement('div');
   tip.className = 'aitip';
-  tip.innerHTML = '&#128269; <strong>Реальний пошук:</strong> '+(data.ai_tip||'—')
-    +'<div style="font-size:10px;color:var(--ok);margin-top:5px">&#10003; Дані отримані через веб-пошук — ціни та посилання реальні</div>';
+  var cacheInfo='';
+  if(cacheTs){
+    var ageMs=Date.now()-cacheTs;
+    var ageDays=Math.floor(ageMs/(1000*60*60*24));
+    var dateStr=new Date(cacheTs).toLocaleDateString('uk');
+    cacheInfo = ageDays===0
+      ? 'оновлено сьогодні ('+dateStr+')'
+      : 'оновлено '+ageDays+' '+(ageDays===1?'день':'днів')+' тому ('+dateStr+')';
+  }
+  var pryznach = data.pryznachennya ? '<div style="font-size:11px;color:var(--mut);margin-bottom:6px"><strong>Призначення:</strong> '+data.pryznachennya+'</div>' : '';
+  tip.innerHTML = pryznach
+    +'&#128269; <strong>Реальний пошук:</strong> '+(data.ai_tip||'—')
+    +'<div style="font-size:10px;color:var(--ok);margin-top:5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+    +'<span>&#10003; Дані отримані через веб-пошук &mdash; за фіксованим промптом</span>'
+    +(cacheInfo?'<span style="color:var(--mut)">&middot; '+cacheInfo+'</span>':'')
+    +'<button id="refreshAiBtn" style="margin-left:auto;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:3px;padding:2px 10px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">&#8635; Оновити пошук</button>'
+    +'</div>';
   wrap.appendChild(tip);
 
-  // PRICE BAR
-  if(curP>0 && suppliers.length>0){
-    var vals = suppliers.filter(function(s){return s.preis_brutto>0;}).map(function(s){return s.preis_brutto;});
-    if(vals.length>0){
-      var maxP = Math.max.apply(null, vals.concat([curP])) * 1.15;
-      var cmp = document.createElement('div');
-      cmp.className = 'price-compare';
-      cmp.innerHTML = '<div class="price-compare-title">&#128202; Порівняння цін (поточна vs знайдені)</div>';
-
-      // current
-      var cw = Math.round((curP/maxP)*100);
-      var row0 = document.createElement('div');
-      row0.className = 'price-bar-row';
-      row0.innerHTML = '<div class="price-bar-name" style="font-weight:700;color:var(--bl)">&#128312; 1С &mdash; '+(item.l||'поточний')+'</div>'
-        +'<div class="price-bar-wrap"><div class="price-bar-fill" style="width:'+cw+'%;background:var(--bl)">'
-        +'<span class="price-bar-val">&euro;'+curP.toFixed(2)+'</span></div></div>'
-        +'<div class="price-bar-delta" style="color:var(--bl);font-weight:700">поточна</div>';
-      cmp.appendChild(row0);
-
-      suppliers.forEach(function(s){
-        if(!s.preis_brutto) return;
-        var w = Math.round((s.preis_brutto/maxP)*100);
-        var diff = s.preis_brutto - curP;
-        var pct = Math.round((diff/curP)*100);
-        var color = pct<0?'var(--ok)':pct>0?'var(--err)':'var(--mut)';
-        var bg = pct<0?'#2d7a4f':pct>0?'#c0392b':'#888';
-        var dStr = pct<0?'&#9660; '+Math.abs(pct)+'% дешевше':pct>0?'&#9650; +'+pct+'% дорожче':'= однак.';
-        var row = document.createElement('div');
-        row.className = 'price-bar-row';
-        row.innerHTML = '<div class="price-bar-name">'+s.hersteller+'</div>'
-          +'<div class="price-bar-wrap"><div class="price-bar-fill" style="width:'+w+'%;background:'+bg+'">'
-          +'<span class="price-bar-val">&euro;'+parseFloat(s.preis_brutto||0).toFixed(2)+'</span></div></div>'
-          +'<div class="price-bar-delta" style="color:'+color+';font-weight:700">'+dStr+'</div>';
-        cmp.appendChild(row);
-      });
-      wrap.appendChild(cmp);
-    }
+  if(!suppliers.length){
+    var empty=document.createElement('div');
+    empty.className='nosel';
+    empty.innerHTML='<div class="nosel-ic">&#9888;</div><p style="font-size:12px;text-align:center;max-width:320px">AI не знайшов жодної позиції з точним артикулом. Згідно з правилами анти-галюцинацій: немає артикула = немає рекомендації.</p>';
+    wrap.appendChild(empty);
+    pc.innerHTML='';
+    pc.appendChild(wrap);
+    var rb0=document.getElementById('refreshAiBtn');
+    if(rb0) rb0.addEventListener('click',function(){ doAI(true); });
+    return;
   }
 
-  // SUPPLIER CARDS
-  var grid = document.createElement('div');
-  grid.className = 'sgrid';
-
-  suppliers.forEach(function(s,i){
-    var card = document.createElement('div');
-    card.className = 'scard'+(i===0?' best':'');
-
-    // Rank
-    var rank = document.createElement('span');
-    rank.className = 'srank'+(i===0?' br':'');
-    rank.textContent = i===0?'★ НАЙКРАЩЕ':'#'+(i+1);
-    card.appendChild(rank);
-
-    // Price delta badge
-    var deltaBadge = '';
-    if(curP>0 && s.preis_brutto>0){
-      var d2 = s.preis_brutto - curP;
-      var p2 = Math.round((d2/curP)*100);
-      if(p2<0) deltaBadge='<span class="delta-ok">&#9660; '+Math.abs(p2)+'% дешевше</span>';
-      else if(p2>0) deltaBadge='<span class="delta-bad">&#9650; +'+p2+'% дорожче</span>';
-      else deltaBadge='<span class="delta-eq">= однакова ціна</span>';
-    }
-
-    // Inner HTML
-    var inner = '<div class="sname">&#127981; '+s.hersteller+'</div>'
-      +'<div class="styp">'+(s.nassabrieb?'Nassabrieb Kl.'+s.nassabrieb:'')+'</div>';
-
-    // Product block
-    inner += '<div class="prod-block">'+s.produkt_name+'</div>';
-
-    // EAN / Artikul
-    var artLine = '';
-    if(s.ean) artLine += 'EAN: '+s.ean;
-    if(s.artikul) artLine += (artLine?' &nbsp;|&nbsp; ':'')+'Арт: '+s.artikul;
-    if(artLine) inner += '<div class="prod-art">'+artLine+'</div>';
-    else inner += '<div class="prod-art" style="color:#e67e22">&#9888; артикул не знайдено</div>';
-
-    // Metrics
-    inner += '<div class="smets">';
-    if(s.preis_brutto){
-      inner += '<span class="smet pr">&euro;'+parseFloat(s.preis_brutto||0).toFixed(2)+' brutto';
-      if(s.preis_netto) inner += ' / &euro;'+s.preis_netto.toFixed(2)+' netto';
-      inner += ' / '+s.einheit+'</span>';
-      if(deltaBadge) inner += deltaBadge;
-    } else {
-      inner += '<span class="smet dl" style="color:#e67e22">&#9888; ціна невідома &mdash; уточни</span>';
-    }
-    if(s.shop_name) inner += '<span class="smet dl">&#128722; '+s.shop_name+'</span>';
-    if(s.lieferzeit) inner += '<span class="smet dl">&#128336; '+s.lieferzeit+'</span>';
-    inner += '</div>';
-
-    if(s.vorteil) inner += '<div class="vort">&#10003; '+s.vorteil+'</div>';
-
-    // ACTION BUTTONS area
-    inner += '<div class="sacts" id="acts'+i+'"></div>';
-
-    card.innerHTML += inner;
-    grid.appendChild(card);
-
-    // Add buttons safely after DOM insert
-    setTimeout(function(si, sc, ss){
-      var acts = sc.querySelector('#acts'+si);
-      if(!acts) return;
-
-      // Product page link
-      if(ss.produkt_url){
-        var lnk = document.createElement('a');
-        lnk.className = 'sbtn';
-        lnk.style.cssText = 'background:rgba(200,168,75,.1);border-color:var(--gold);color:var(--gold)';
-        lnk.innerHTML = '&#128279; Сторінка товару';
-        lnk.href = ss.produkt_url;
-        lnk.target = '_blank';
-        acts.appendChild(lnk);
-      }
-
-      // Contact form
-      if(ss.kontakt_form){
-        var cf = document.createElement('a');
-        cf.className = 'sbtn';
-        cf.innerHTML = '&#128203; B2B запит';
-        cf.href = ss.kontakt_form;
-        cf.target = '_blank';
-        acts.appendChild(cf);
-      }
-
-      // Copy email inquiry
-      var mailBtn = document.createElement('button');
-      mailBtn.className = 'sbtn';
-      mailBtn.innerHTML = '&#9993; Лист скопіювати';
-      mailBtn.addEventListener('click', function(){
-        buildAndCopyMail(ss, item);
-      });
-      acts.appendChild(mailBtn);
-
-      // Open mailto if email known
-      if(ss.kontakt_email){
-        var mailLink = document.createElement('a');
-        mailLink.className = 'sbtn gb';
-        mailLink.innerHTML = '&#128231; '+ss.kontakt_email;
-        mailLink.href = 'mailto:'+ss.kontakt_email
-          +'?subject=Angebotsanfrage '+encodeURIComponent(ss.produkt_name)
-          +'&body='+encodeURIComponent(buildMailText(ss, item));
-        acts.appendChild(mailLink);
-      }
-
-    }, 0, i, card, s);
+  // Group by category: Großhandel / Baumarkt / Online
+  var CAT_ORDER = ['Großhandel','Baumarkt','Online/Amazon'];
+  var CAT_LABELS = {
+    'Großhandel': '&#127970; Großhandel',
+    'Baumarkt': '&#128722; Baumarkt',
+    'Online/Amazon': '&#128187; Online / Amazon'
+  };
+  var grouped = {};
+  suppliers.forEach(function(s){
+    var k = s.kategoriya || 'Online/Amazon';
+    if(!grouped[k]) grouped[k]=[];
+    grouped[k].push(s);
   });
 
-  wrap.appendChild(grid);
+  // PRICE COMPARISON BAR (only items with real price)
+  var withPrice = suppliers.filter(function(s){return s.preis_brutto && parseFloat(s.preis_brutto)>0;});
+  if(curP>0 && withPrice.length>0){
+    var vals = withPrice.map(function(s){return parseFloat(s.preis_brutto);});
+    var maxP = Math.max.apply(null, vals.concat([curP])) * 1.12;
+    var cmp = document.createElement('div');
+    cmp.className = 'price-compare';
+    cmp.innerHTML = '<div class="price-compare-title">&#128202; Порівняння цін (поточна vs знайдені)</div>';
+
+    var curW = Math.round((curP/maxP)*100);
+    var row0 = document.createElement('div');
+    row0.className = 'price-bar-row';
+    row0.innerHTML = '<div class="price-bar-name" style="font-weight:700;color:var(--bl)">&#128312; 1С &mdash; '+(item.l||'поточний')+'</div>'
+      +'<div class="price-bar-wrap"><div class="price-bar-fill" style="width:'+curW+'%;background:var(--bl)">'
+      +'<span class="price-bar-val">&euro;'+curP.toFixed(2)+'</span></div></div>'
+      +'<div class="price-bar-delta" style="color:var(--bl);font-weight:700">поточна</div>';
+    cmp.appendChild(row0);
+
+    withPrice.forEach(function(s){
+      var p = parseFloat(s.preis_brutto);
+      var w = Math.round((p/maxP)*100);
+      var diff = p - curP;
+      var pct = Math.round((diff/curP)*100);
+      var color = pct<0?'var(--ok)':pct>0?'var(--err)':'var(--mut)';
+      var bg = pct<0?'#15803d':pct>0?'#b91c1c':'#8a8a8a';
+      var dStr = pct<0?'&#9660; '+Math.abs(pct)+'%':pct>0?'&#9650; +'+pct+'%':'= однак.';
+      var row = document.createElement('div');
+      row.className = 'price-bar-row';
+      row.innerHTML = '<div class="price-bar-name">'+s.hersteller+'</div>'
+        +'<div class="price-bar-wrap"><div class="price-bar-fill" style="width:'+w+'%;background:'+bg+'">'
+        +'<span class="price-bar-val">&euro;'+p.toFixed(2)+'</span></div></div>'
+        +'<div class="price-bar-delta" style="color:'+color+';font-weight:700">'+dStr+'</div>';
+      cmp.appendChild(row);
+    });
+    wrap.appendChild(cmp);
+  }
+
+  // SUPPLIER CARDS GROUPED BY CATEGORY
+  CAT_ORDER.forEach(function(cat){
+    var list = grouped[cat];
+    if(!list || !list.length) return;
+
+    var catHdr = document.createElement('div');
+    catHdr.style.cssText='font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);font-weight:700;margin:16px 0 8px;font-family:"JetBrains Mono",monospace;border-bottom:1px solid var(--brd);padding-bottom:6px';
+    catHdr.innerHTML = CAT_LABELS[cat]||cat;
+    wrap.appendChild(catHdr);
+
+    var grid = document.createElement('div');
+    grid.className = 'sgrid';
+
+    list.forEach(function(s,i){
+      var card = document.createElement('div');
+      var globalBest = withPrice.length && parseFloat(s.preis_brutto)===Math.min.apply(null,vals);
+      card.className = 'scard'+(globalBest?' best':'');
+
+      if(globalBest){
+        var rank = document.createElement('span');
+        rank.className = 'srank br';
+        rank.textContent = '\u2605 НАЙКРАЩЕ';
+        card.appendChild(rank);
+      }
+
+      var deltaBadge = '';
+      if(curP>0 && s.preis_brutto){
+        var d2 = parseFloat(s.preis_brutto) - curP;
+        var p2 = Math.round((d2/curP)*100);
+        if(p2<0) deltaBadge='<span class="delta-ok">&#9660; '+Math.abs(p2)+'% дешевше</span>';
+        else if(p2>0) deltaBadge='<span class="delta-bad">&#9650; +'+p2+'% дорожче</span>';
+        else deltaBadge='<span class="delta-eq">= однакова ціна</span>';
+      }
+
+      var inner = '<div class="sname">&#127981; '+s.hersteller+'</div>';
+      inner += '<div class="prod-block">'+s.produkt_name+'</div>';
+
+      var artLine = 'Арт.: '+s.artikul;
+      if(s.ean) artLine += ' &nbsp;|&nbsp; EAN: '+s.ean;
+      inner += '<div class="prod-art">'+artLine+'</div>';
+
+      inner += '<div class="smets">';
+      if(s.preis_brutto && parseFloat(s.preis_brutto)>0){
+        inner += '<span class="smet pr">&euro;'+parseFloat(s.preis_brutto).toFixed(2)+' / '+(s.einheit||'од')+'</span>';
+        if(deltaBadge) inner += deltaBadge;
+      } else {
+        inner += '<span class="smet dl" style="color:#c2410c;background:#fff7ed">&#9888; '+(s.preis_status||'Ціну потрібно уточнити')+'</span>';
+      }
+      inner += '</div>';
+
+      if(s.vorteil) inner += '<div class="vort">&#10003; '+s.vorteil+'</div>';
+
+      inner += '<div class="sacts" id="acts_'+cat.replace(/[^a-zA-Z]/g,'')+'_'+i+'"></div>';
+      card.innerHTML += inner;
+      grid.appendChild(card);
+
+      var actId = 'acts_'+cat.replace(/[^a-zA-Z]/g,'')+'_'+i;
+      setTimeout(function(){
+        var a = document.getElementById(actId);
+        if(!a) return;
+        if(s.produkt_url){
+          var lnk=document.createElement('a');
+          lnk.className='sbtn';
+          lnk.style.cssText='background:rgba(240,180,41,.1);border-color:var(--gold);color:#d4940e';
+          lnk.innerHTML='&#128279; Сторінка товару';
+          lnk.href=s.produkt_url; lnk.target='_blank';
+          a.appendChild(lnk);
+        }
+        var mailBtn=document.createElement('button');
+        mailBtn.className='sbtn';
+        mailBtn.innerHTML='&#9993; Лист скопіювати';
+        mailBtn.addEventListener('click',function(){ buildAndCopyMail(s,item); });
+        a.appendChild(mailBtn);
+      },0);
+    });
+
+    wrap.appendChild(grid);
+  });
+
+  // PREISANFRAGE LETTER (if AI generated one)
+  if(data.preisanfrage_brief){
+    var letterBox = document.createElement('div');
+    letterBox.style.cssText='margin-top:18px;background:#fbf7ec;border:1px solid var(--brd);border-radius:6px;padding:14px 16px';
+    letterBox.innerHTML='<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:8px;font-family:\'JetBrains Mono\',monospace">&#9993; Preisanfrage (ціна не знайдена в Großhandel)</div>'
+      +'<div style="font-size:12px;color:#3a3a3a;line-height:1.7;white-space:pre-wrap;font-family:\'Inter\',sans-serif">'+data.preisanfrage_brief+'</div>'
+      +'<button id="copyPreisanfrage" style="margin-top:10px;padding:6px 16px;background:var(--gold);border:none;border-radius:3px;cursor:pointer;font-size:11px;font-weight:700;color:#3a3a3a;font-family:inherit">&#10003; Копіювати лист</button>';
+    wrap.appendChild(letterBox);
+    setTimeout(function(){
+      var btn=document.getElementById('copyPreisanfrage');
+      if(btn) btn.addEventListener('click',function(){
+        navigator.clipboard.writeText(data.preisanfrage_brief).then(function(){
+          alert('Лист скопійовано!');
+        });
+      });
+    },0);
+  }
+
   pc.innerHTML = '';
   pc.appendChild(wrap);
 
   var refreshBtn=document.getElementById('refreshAiBtn');
   if(refreshBtn) refreshBtn.addEventListener('click',function(){ doAI(true); });
 }
-
-function buildMailText(s, item){
-  var plzL = document.getElementById('plzSel').selectedOptions[0].text;
-  return "Sehr geehrte Damen und Herren,\n\n"
-    + "wir sind LK Bauservice GmbH, ein Bauunternehmen aus der Region " + plzL + ".\n"
-    + "Wir interessieren uns für folgendes Produkt:\n\n"
-    + "Produkt: " + s.produkt_name + "\n"
-    + (s.ean ? "EAN: " + s.ean + "\n" : "")
-    + (s.artikul ? "Artikelnummer: " + s.artikul + "\n" : "")
-    + "\nWir bitten um folgende Informationen:\n"
-    + "- Netto-Preis pro Einheit für gewerbliche Kunden\n"
-    + "- Staffelpreise ab 10, 50, 100 Einheiten\n"
-    + "- Lieferzeit in die Region " + plzL + "\n"
-    + "- Mindestbestellmenge\n"
-    + "- Zahlungskonditionen / Skonto\n\n"
-    + "Wir verwalten mehrere Baustellen pro Jahr und suchen einen zuverlässigen Lieferanten.\n\n"
-    + "Mit freundlichen Grüßen\n"
-    + "LK Bauservice GmbH\n"
-    + "Einkaufsabteilung";
-}
-
-function buildAndCopyMail(s, item){
-  var txt = buildMailText(s, item);
-  navigator.clipboard.writeText(txt).then(function(){
-    alert('Лист скопійовано!\n\nВідправ на: ' + (s.kontakt_email||'знайди контакт на сайті постачальника'));
-  });
-}
-
 
 async function doInfo(){
   if(!selItem)return;
