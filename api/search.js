@@ -33,12 +33,20 @@ export default async function handler(req, res) {
     if (!r.ok) throw new Error(data.error?.message || 'Gemini error');
 
     let text = '';
+    const sources = [];
     for (const c of (data.candidates || [])) {
       for (const p of (c.content?.parts || [])) {
         if (p.text) text += p.text;
       }
+      // Extract real URLs from grounding metadata (actual search result links)
+      const chunks = c.groundingMetadata?.groundingChunks || [];
+      for (const chunk of chunks) {
+        if (chunk.web?.uri) {
+          sources.push({ title: chunk.web.title || '', uri: chunk.web.uri });
+        }
+      }
     }
-    return text;
+    return { text, sources };
   }
 
   // ANDRII'S FIXED PROCUREMENT PROMPT - DO NOT MODIFY
@@ -96,7 +104,7 @@ export default async function handler(req, res) {
   try {
     if (type === 'info') {
       const prompt = systemMsg + '\n\n' + userMsg + '\n\nAntwort NUR als JSON-Objekt, kein Text davor oder danach.';
-      let text = await callGemini(prompt, false);
+      let { text } = await callGemini(prompt, false);
       text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
       const j1 = text.indexOf('{'), j2 = text.lastIndexOf('}');
       if (j1 >= 0 && j2 >= 0) text = text.slice(j1, j2 + 1);
@@ -107,15 +115,30 @@ export default async function handler(req, res) {
     // AI tab - TWO STEPS using Andrii's fixed prompt
     // Step 1: Search with Google Search using the fixed procurement prompt
     const searchPrompt = PROCUREMENT_SYSTEM_PROMPT + '\n\n---\n\n' + userMsg;
-    const searchResults = await callGemini(searchPrompt, true);
+    const { text: searchResults, sources } = await callGemini(searchPrompt, true);
+
+    // Build a list of VERIFIED real URLs found during the actual search (deduplicated)
+    const seenUris = new Set();
+    let sourcesList = '';
+    for (const s of sources) {
+      if (seenUris.has(s.uri)) continue;
+      seenUris.add(s.uri);
+      sourcesList += `- ${s.title} : ${s.uri}\n`;
+    }
+    if (!sourcesList) sourcesList = '(Keine verifizierten Quellen-URLs gefunden)';
 
     // Step 2: Format search results as JSON matching the required output structure
     const formatPrompt = `Du hast folgende Recherche-Ergebnisse:
 
 ${searchResults}
 
+VERIFIZIERTE QUELLEN-URLS (echte Links aus der Suche, NUR diese verwenden):
+${sourcesList}
+
 Erstelle jetzt NUR ein JSON-Objekt basierend auf diesen Ergebnissen, gemäß folgender Struktur (alle Texte auf Ukrainisch, außer Briefvorlage auf Deutsch):
 Kein Text vor oder nach dem JSON. Nur das JSON-Objekt.
+
+WICHTIG ZU produkt_url: Verwende AUSSCHLIESSLICH eine URL aus der Liste "VERIFIZIERTE QUELLEN-URLS" oben, die zum jeweiligen Lieferanten/Produkt passt. ERFINDE oder VERÄNDERE niemals eine URL. Wenn keine passende URL aus der Liste existiert, setze produkt_url auf null.
 
 {
   "tovar_1c": "Назва товару з 1С",
