@@ -161,7 +161,7 @@ WICHTIG ZU produkt_url: Verwende AUSSCHLIESSLICH eine URL aus der Liste "VERIFIZ
   "preisanfrage_brief": "Якщо для Großhandel ціна не знайдена - офіційний лист-запит ціни німецькою мовою від L.K Bauservice (Sehr geehrte Damen und Herren, wir von L.K Bauservice...), інакше null"
 }`;
 
-    let jsonText = await callGemini(formatPrompt, false);
+    let { text: jsonText } = await callGemini(formatPrompt, false);
     jsonText = jsonText.replace(/```json/gi, '').replace(/```/g, '').trim();
     const j1 = jsonText.indexOf('{'), j2 = jsonText.lastIndexOf('}');
     if (j1 >= 0 && j2 >= 0) jsonText = jsonText.slice(j1, j2 + 1);
