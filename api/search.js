@@ -60,6 +60,37 @@ export default async function handler(req, res) {
 - Прямі посилання (Deep Links) замість головних сторінок: Усі посилання МАЮТЬ бути прямими лінками на сторінку конкретного товару, щоб закупник не шукав його вручну. Посилання просто на "brillux.de" або "hornbach.de" вважаються недійсними.
 - Автоматична чернетка листа: Якщо для Großhandel (наприклад, Brillux) ціну знайти не вдалося, автоматично створи офіційний запит ціни (Preisanfrage) німецькою мовою від імені "L.K Bauservice" (наприклад: "Sehr geehrte Damen und Herren, wir von L.K Bauservice benötigen ein Angebot für...").`;
 
+
+  // Repair JSON: escape literal newlines/tabs/CR that occur inside string values
+  function sanitizeJson(str) {
+    let result = '';
+    let inString = false;
+    let escaped = false;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str[i];
+      if (escaped) {
+        result += ch;
+        escaped = false;
+        continue;
+      }
+      if (ch === '\\') {
+        result += ch;
+        escaped = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = !inString;
+        result += ch;
+        continue;
+      }
+      if (inString && ch === '\n') { result += '\\n'; continue; }
+      if (inString && ch === '\r') { result += '\\r'; continue; }
+      if (inString && ch === '\t') { result += '\\t'; continue; }
+      result += ch;
+    }
+    return result;
+  }
+
   try {
     if (type === 'info') {
       const prompt = systemMsg + '\n\n' + userMsg + '\n\nAntwort NUR als JSON-Objekt, kein Text davor oder danach.';
@@ -67,6 +98,7 @@ export default async function handler(req, res) {
       text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
       const j1 = text.indexOf('{'), j2 = text.lastIndexOf('}');
       if (j1 >= 0 && j2 >= 0) text = text.slice(j1, j2 + 1);
+      text = sanitizeJson(text);
       return res.status(200).json({ text });
     }
 
@@ -109,6 +141,7 @@ Kein Text vor oder nach dem JSON. Nur das JSON-Objekt.
     const j1 = jsonText.indexOf('{'), j2 = jsonText.lastIndexOf('}');
     if (j1 >= 0 && j2 >= 0) jsonText = jsonText.slice(j1, j2 + 1);
 
+    jsonText = sanitizeJson(jsonText);
     return res.status(200).json({ text: jsonText });
 
   } catch (err) {
