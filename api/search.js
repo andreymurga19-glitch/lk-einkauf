@@ -41,9 +41,27 @@ export default async function handler(req, res) {
     return text;
   }
 
+  // ANDRII'S FIXED PROCUREMENT PROMPT - DO NOT MODIFY
+  const PROCUREMENT_SYSTEM_PROMPT = `Ти — професійний асистент із закупівель для німецької будівельної компанії "L.K Bauservice". Твоє завдання — аналізувати артикули з нашої номенклатури 1С, розуміти їхнє точне призначення та технічні характеристики, а також знаходити найкращі джерела постачання в Німеччині.
+
+АЛГОРИТМ АНАЛІЗУ ТОВАРУ (КРОК ЗА КРОКОМ):
+1. Визначення призначення: Проаналізуй позицію (наприклад, "MegaGrund 353" -> грунтовка/фарба для стін 3-го класу стирання / Nassabriebklasse 3; "Валик поролоновий 110мм" -> поролоновий валик для фарбування дверей лаком).
+2. Звірка з каталогом LWS/EGLWS: Перевір, які бренди чи класи якості прописані для соціального житла (наприклад, Brillux).
+3. Регіональний пошук: Сфокусуйся на регіоні Зальцгіттер (Salzgitter, індекс 38226), Брауншвайг (Braunschweig) та Нижня Саксонія.
+
+СУВОРИЙ ПОРЯДОК ПОШУКУ ТА ДЖЕРЕЛА:
+1. Großhandel (MEGA eG, Brillux, Schlau Großhandel): Тут ти зобов'язаний знайти точний артикул (Artikelnummer) відповідного класу якості. Якщо ціни закриті через необхідність логіну, став статус "Ціну потрібно уточнити".
+2. Baumärkte (Globus Baumarkt у Зальцгіттері, Hornbach у Брауншвайгу, Sonderpreis Baumarkt): Тут ти зобов'язаний знайти точний артикул, актуальну ціну та пряме посилання на товар.
+3. Топ-онлайн-магазини та Amazon: Шукай дешевші альтернативи для розхідників (валики, наждачні диски для жирафа). Вказівка артикула, ціни та прямого посилання є обов'язковою.
+
+СУВОРІ ПРАВИЛА ПРОТИ ГАЛЮЦИНАЦІЙ (ANTI-HALLUCINATION):
+- Жодних вигаданих даних: Категорично заборонено вигадувати артикули або ціни.
+- Немає артикула = немає рекомендації: Якщо для товару не знайдено точного артикула, ти не маєш права рекомендувати цю позицію.
+- Прямі посилання (Deep Links) замість головних сторінок: Усі посилання МАЮТЬ бути прямими лінками на сторінку конкретного товару, щоб закупник не шукав його вручну. Посилання просто на "brillux.de" або "hornbach.de" вважаються недійсними.
+- Автоматична чернетка листа: Якщо для Großhandel (наприклад, Brillux) ціну знайти не вдалося, автоматично створи офіційний запит ціни (Preisanfrage) німецькою мовою від імені "L.K Bauservice" (наприклад: "Sehr geehrte Damen und Herren, wir von L.K Bauservice benötigen ein Angebot für...").`;
+
   try {
     if (type === 'info') {
-      // Info tab - single call, ask for JSON directly
       const prompt = systemMsg + '\n\n' + userMsg + '\n\nAntwort NUR als JSON-Objekt, kein Text davor oder danach.';
       let text = await callGemini(prompt, false);
       text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -52,40 +70,38 @@ export default async function handler(req, res) {
       return res.status(200).json({ text });
     }
 
-    // AI tab - TWO STEPS
-    // Step 1: Search with Google Search, get free text results
-    const searchPrompt = userMsg;
+    // AI tab - TWO STEPS using Andrii's fixed prompt
+    // Step 1: Search with Google Search using the fixed procurement prompt
+    const searchPrompt = PROCUREMENT_SYSTEM_PROMPT + '\n\n---\n\n' + userMsg;
     const searchResults = await callGemini(searchPrompt, true);
 
-    // Step 2: Format search results as JSON (no google_search tool)
-    const formatPrompt = `Du hast folgende Suchergebnisse gefunden:
+    // Step 2: Format search results as JSON matching the required output structure
+    const formatPrompt = `Du hast folgende Recherche-Ergebnisse:
 
 ${searchResults}
 
-Erstelle jetzt NUR ein JSON-Objekt basierend auf diesen Suchergebnissen.
+Erstelle jetzt NUR ein JSON-Objekt basierend auf diesen Ergebnissen, gemäß folgender Struktur (alle Texte auf Ukrainisch, außer Briefvorlage auf Deutsch):
 Kein Text vor oder nach dem JSON. Nur das JSON-Objekt.
 
-Format:
 {
-  "ai_tip": "порада українською мовою",
+  "tovar_1c": "Назва товару з 1С",
+  "pryznachennya": "Призначення/Клас (наприклад, Фарба для стін Клас 3 / Поролоновий валик 110мм)",
+  "ai_tip": "коротка порада українською",
   "lieferanten": [
     {
-      "hersteller": "виробник",
+      "kategoriya": "Großhandel | Baumarkt | Online/Amazon",
+      "hersteller": "Виробник або магазин",
       "produkt_name": "точна назва товару",
+      "artikul": "точний артикул або null - якщо null, ЦЯ ПОЗИЦІЯ НЕ МАЄ БУТИ РЕКОМЕНДОВАНА",
       "ean": "EAN або null",
-      "artikul": "артикул або null",
-      "preis_brutto": 0.00,
-      "preis_netto": null,
-      "einheit": "12,5L",
-      "produkt_url": "посилання або null",
-      "shop_name": "де знайдено ціну або null",
-      "kontakt_email": null,
-      "kontakt_form": null,
-      "lieferzeit": "термін або null",
-      "vorteil": "перевага українською",
-      "nassabrieb": "3"
+      "preis_brutto": число або null,
+      "preis_status": "ціна знайдена | Ціну потрібно уточнити",
+      "einheit": "одиниця",
+      "produkt_url": "ПРЯМЕ посилання на сторінку товару (deep link), НЕ головна сторінка сайту",
+      "vorteil": "перевага українською"
     }
-  ]
+  ],
+  "preisanfrage_brief": "Якщо для Großhandel ціна не знайдена - офіційний лист-запит ціни німецькою мовою від L.K Bauservice (Sehr geehrte Damen und Herren, wir von L.K Bauservice...), інакше null"
 }`;
 
     let jsonText = await callGemini(formatPrompt, false);
