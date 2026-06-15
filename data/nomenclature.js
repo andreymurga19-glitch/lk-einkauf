@@ -3,7 +3,7 @@
 var DB = {
   "1 - Maler":{icon:"🎨",children:{
     "1 - Малярні Роботи - Malerarbeiten":{icon:"🖌",children:{
-      "4 - Гіпсокартон - Gipskartonplatten":{icon:"🧱",items:[
+      "4 - Гіпсокартон, профілі - Gipskartonplatten":{icon:"🧱",items:[
         {n:"CD - Profil - 60/27/0,6мм 3000мм",d:"Trockenbau - CD-Profil 60/27/06 mm 3000mm idv",a:"60/27/06",p:2.73,l:"Hornbach"},
         {n:"Profil C-60 3mb. główny sufitowy",d:"Profil C-60 3mb. główny sufitowy",a:"",p:7.65,l:"Hornbach"},
         {n:"UA - Profil - 50 2 х 3000мм Profile Стеновой усиленный для проемов",d:"Profile UA-50",a:"UA-50",p:6.98,l:"IDV Dämmstoff-Vertriebs GmbH"},
@@ -15,7 +15,9 @@ var DB = {
         {n:"Лента для швов для гипсокартона 48мм 20мм DECORPRO Gitterband",d:"Gitterband 48 mm x 20 m selbstklebend weiß Trockenbau",a:"4013307704195",p:2.45,l:"Globus Fachmarkte GmbH"},
         {n:"Лента уплотнительная - Knauf 30м Rolle, 5см breit, anthrazit",d:"Knauf Dichtungsband 30 m Rolle, 5 cm breit, anthrazit",a:"4003982032508",p:11.3,l:"IDV Dämmstoff-Vertriebs GmbH"},
         {n:"Подвесы для профиля к гипсокартону 200мм (Вертолёт)",d:"Trockenbau* Direktabhänger flach GK 200mm",a:"80160",p:0.4,l:"Globus Fachmarkte GmbH"},
-        {n:"Проволока для подвесного элемента 750мм",d:"Ösendraht 750mm",a:"80025",p:0.12,l:"IDV Dämmstoff-Vertriebs GmbH"},
+        {n:"Проволока для подвесного элемента 750мм",d:"Ösendraht 750mm",a:"80025",p:0.12,l:"IDV Dämmstoff-Vertriebs GmbH"}
+      ]},
+      "Краски, Валики, Шпаклівка - Malermaterial":{icon:"🎨",items:[
         {n:"Ацетон 0,5l ПОЛЬЩА",d:"ACETON 0,5l ПОЛЬЩА",a:"",p:2.0,l:"Mari-Group"},
         {n:"Ацетон 1 л",d:"Aceton 1 L",a:"4000590404802",p:7.45,l:"Hornbach"},
         {n:"Бумага для накрытия пола ТОНКАЯ 1х100м",d:"MEGA ABDECKPAPIER SCHRENZ 1 X 100 M",a:"3096412",p:0.13,l:"Mega eG"},
