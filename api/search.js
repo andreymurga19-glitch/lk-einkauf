@@ -138,6 +138,14 @@ export default async function handler(req, res) {
 - Unterverteilung: Striebel+John Verteiler UP 4-reihig
 - Wärmespeicherheizung: Stiebel Eltron ETS 200/400/500/600 plus
 
+ОБОВ'ЯЗКОВИЙ ФОРМАТ ЗВІТУВАННЯ ПРО ЗНАЙДЕНІ ТОВАРИ:
+Для КОЖНОГО знайденого товару/ціни у своїй текстовій відповіді ти МАЄШ написати окремий рядок у форматі:
+URL: <повна точна адреса сторінки, яку ти бачив у результатах пошуку>
+Цей рядок пиши ОДРАЗУ після опису товару (назва, ціна, артикул). Якщо для конкретного товару ти НЕ маєш точної адреси сторінки зі свого пошуку — напиши "URL: keine" для цього товару (НЕ пропускай рядок, НЕ вигадуй адресу).
+ЦЕ КРИТИЧНО: тільки ТАКИМ способом точна URL-адреса потрапляє у фінальний результат — інакше посилання буде null.
+
+ЗАГАЛЬНІ/ПОШИРЕНІ ТОВАРИ (кабелі, кріплення, наждачний папір, базова фурнітура) — продаються практично у КОЖНОМУ Baumarkt/Großhandel. Для таких товарів НЕ здавайся після одного пошуку — якщо перший запит не дав результату, спробуй інше формулювання (інша назва магазину, інше написання товару). "Не знайшов жодного артикула" для типового масового товару (наприклад NYM-J кабель 3x1,5) є СИГНАЛОМ, що пошук виконано недостатньо — спробуй ще раз з іншими запитами, перш ніж визнавати що товару немає.
+
 СУВОРІ ПРАВИЛА ПРОТИ ГАЛЮЦИНАЦІЙ (ANTI-HALLUCINATION):
 - Жодних вигаданих даних: Категорично заборонено вигадувати артикули або ціни.
 - Немає артикула = немає рекомендації: Якщо для товару не знайдено точного артикула, ти не маєш права рекомендувати цю позицію.
@@ -208,13 +216,13 @@ export default async function handler(req, res) {
 
 ${searchResults}
 
-VERIFIZIERTE QUELLEN-URLS (echte Links aus der Suche, NUR diese verwenden):
+ZUSÄTZLICHE QUELLEN-HINWEISE (Grounding, optional):
 ${sourcesList}
 
 Erstelle jetzt NUR ein JSON-Objekt basierend auf diesen Ergebnissen, gemäß folgender Struktur (alle Texte auf Ukrainisch, außer Briefvorlage auf Deutsch):
 Kein Text vor oder nach dem JSON. Nur das JSON-Objekt.
 
-WICHTIG ZU produkt_url: Verwende AUSSCHLIESSLICH eine URL aus der Liste "VERIFIZIERTE QUELLEN-URLS" oben, die zum jeweiligen Lieferanten/Produkt passt. ERFINDE oder VERÄNDERE niemals eine URL. Wenn keine passende URL aus der Liste existiert, setze produkt_url auf null.
+WICHTIG ZU produkt_url (PRIMÄRE QUELLE): Im Recherche-Text oben steht direkt nach jedem gefundenen Produkt eine Zeile "URL: <adresse>" oder "URL: keine". Für jedes Produkt in lieferanten MUSST du genau die zugehörige URL-Zeile finden und produkt_url EXAKT (Zeichen für Zeichen) aus dieser Zeile kopieren. Wenn die Zeile "URL: keine" lautet, setze produkt_url auf null. NIEMALS eine URL erfinden, ergänzen, kürzen oder "korrigieren" - exakte Kopie oder null, keine dritte Option. Die Liste "ZUSÄTZLICHE QUELLEN-HINWEISE" ist nur ein Hilfsmittel falls eine "URL:"-Zeile fehlt, aber NICHT der primäre Weg.
 
 {
   "tovar_1c": "Назва товару з 1С",
