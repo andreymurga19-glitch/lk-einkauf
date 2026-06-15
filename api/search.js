@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
   const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
 
-  async function callGemini(prompt, useSearch) {
+  async function callGemini(prompt, useSearch, jsonMode) {
     const body = {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
@@ -23,6 +23,7 @@ export default async function handler(req, res) {
       }
     };
     if (useSearch) body.tools = [{ google_search: {} }];
+    if (jsonMode) body.generationConfig.responseMimeType = 'application/json';
 
     const r = await fetch(BASE_URL, {
       method: 'POST',
@@ -111,7 +112,7 @@ export default async function handler(req, res) {
   try {
     if (type === 'info') {
       const prompt = systemMsg + '\n\n' + userMsg + '\n\nAntwort NUR als JSON-Objekt, kein Text davor oder danach.';
-      let { text } = await callGemini(prompt, false);
+      let { text } = await callGemini(prompt, false, true);
       text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
       const j1 = text.indexOf('{'), j2 = text.lastIndexOf('}');
       if (j1 >= 0 && j2 >= 0) text = text.slice(j1, j2 + 1);
@@ -168,7 +169,7 @@ WICHTIG ZU produkt_url: Verwende AUSSCHLIESSLICH eine URL aus der Liste "VERIFIZ
   "preisanfrage_brief": "Якщо для Großhandel ціна не знайдена - офіційний лист-запит ціни німецькою мовою від L.K Bauservice (Sehr geehrte Damen und Herren, wir von L.K Bauservice...), інакше null"
 }`;
 
-    let { text: jsonText } = await callGemini(formatPrompt, false);
+    let { text: jsonText } = await callGemini(formatPrompt, false, true);
     jsonText = jsonText.replace(/```json/gi, '').replace(/```/g, '').trim();
     const j1 = jsonText.indexOf('{'), j2 = jsonText.lastIndexOf('}');
     if (j1 >= 0 && j2 >= 0) jsonText = jsonText.slice(j1, j2 + 1);
