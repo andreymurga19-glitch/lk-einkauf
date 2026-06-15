@@ -416,181 +416,72 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
   </div>
 </div>
 
+<script src="/data/nomenclature.js"></script>
 <script>
-var DB = {
-"1 - Maler":{icon:"🎨",children:{
-  "1 - Малярні Роботи - Malerarbeiten":{icon:"🖌",items:[
-    {n:"Ацетон 0,5л ПОЛЬЩА",d:"Aceton 0,5 POLSKA",a:"",p:2.00,l:"Mari-Gro"},
-    {n:"Ацетон 1л",d:"Aceton 1L",a:"4000590404802",p:7.45,l:"Hornbach"},
-    {n:"Папір для накриття пола ТОНКА 1x100m",d:"MEGA ABDECKPAPIER SCHRENZ 1x100M",a:"3096412",p:0.13,l:"Mega eG"},
-    {n:"Бумага Для Накриття ТОЛСТА 58м",d:"MEGA Mlchtütenpapier schwer 280g 50qm",a:"3095509",p:0.64,l:"Mega eG"},
-    {n:"Валик 10см волокнистий",d:"Ersatzwalzen Microfaser",a:"320836",p:1.56,l:""},
-    {n:"Валик паролоновий 110мм",d:"SCHAUMWALZEN 110mm Lackierwalzen",a:"B07JBXRWD9",p:0.43,l:"Amazon"},
-    {n:"Войлок 50м Щільність 180 (ОСНОВНИЙ)",d:"Abdeckvlies Importqualität 50mx1m",a:"3169864",p:0.35,l:"Amazon"},
-    {n:"Гіпс DOLINA-NIDY 30kg",d:"Gips Budowlany szybkowiążący 30kg",a:"02-05-00060",p:8.29,l:"Hornbach"},
-    {n:"Грунтовка АС-5 POLIMIN 5L",d:"AC-5 POLIMIN Grunt głęboko penetrującą 5L",a:"",p:3.98,l:"Globus F"},
-    {n:"Диск для жирафа К 80 Matrix",d:"Schleifpapier-Set K 80 Matrix",a:"",p:0.60,l:"Amazon"},
-    {n:"Диск для жирафа К 100 Matrix",d:"Schleifpapier-Set K 100 Matrix",a:"",p:0.42,l:"Amazon"},
-    {n:"Диск для жирафа К 120 Matrix",d:"Schleifpapier-Set K 120 Matrix",a:"",p:0.37,l:"Amazon"},
-    {n:"Клей Zell-Leim для обоїв 25kg",d:"Pufas KVS Zell-Leim-Tapetenkleister 25kg",a:"1005-000414",p:5.30,l:"Mega eG"},
-    {n:"Краска Jedynka 10L (матова дерево/метал)",d:"DRIMEM BIALY 10L",a:"20.30.12.0",p:4.66,l:"Mega eG",
-     lws_req:"Лак для деревяних і металевих поверхонь — RAL 9010, шовковисто-глянцевий",
-     catalog:[
-      {name:"Brillux",typ:"Виробник",preis:38.00,einheit:"2,5L",artikul:"Brillux Heizkörperlack 375 / RAL 9010",web:"www.brillux.de",note:"RAL 9010 шовковисто-глянцевий — відповідає вимогам LWS"},
-      {name:"Caparol",typ:"Виробник",preis:34.50,einheit:"2,5L",artikul:"Caparol Capacryl PU-Satinlack weiß",web:"www.caparol.de",note:"Sikkens/Caparol — RAL 9010 для дерева та металу"},
-      {name:"Sikkens",typ:"Виробник",preis:42.00,einheit:"1L",artikul:"Sikkens Rubbol BL Satin RAL 9010",web:"www.sikkens.de",note:"Преміум варіант LWS — шовковисто-глянцевий лак"}
-     ]},
-    {n:"КРАСКА NIKOTINSPERRE 10L (від нікотину)",d:"Izoler Farbe 10L NikotinSperre",a:"5501111",p:5.50,l:"Mega eG"},
-    {n:"Краска MEGA grün 353 Flott EKF weiß 12,5L",d:"MEGA grün 353 Flott EKF weiß 12,5L",a:"3122738",p:26.75,l:"Mega eG",
-     lws_req:"Дисперсійна фарба для стін і стель — клас 3, паропроникна, біла, матова",
-     catalog:[
-      {name:"Brillux",typ:"Виробник",preis:64.29,einheit:"15L",artikul:"Brillux Malerweiß Extra ELF 954 weiß",web:"wohntrends-shop.com/Brillux-Malerweiss-Extra-ELF-954/Brillux-3342de56",note:"Nassabriebklasse 3, Brillux — еталон LWS. Ціна за 15L (12,5L пряму сторінку не знайдено)"},
-      {name:"Caparol",typ:"Виробник",preis:63.95,einheit:"12,5L",artikul:"Caparol RF RaumFinish weiß",web:"farbenhit.de/innen-farbeputz/innenfarben/nassabriebklasse-3/2005/caparol-rf-raumfinish-12-5l-weiss",note:"Nassabriebklasse 3 — відповідає вимогам LWS"},
-      {name:"Relius",typ:"Виробник",preis:null,einheit:"12,5L",artikul:"Relius Extra Plus weiß (NAK 3, DVK 2)",web:"relius.de/produkte/innenfarben/dispersions-und-siliconharzfarben/extra-plus/",note:"Сторінка виробника — ціну потрібно уточнити у дистрибʼютора"}
-     ]},
-    {n:"Краска MEGA силікатна 12,5L (Біла) HANOVA",d:"MEGA 327 Silikat Innenfarbe 12,5l weiß",a:"1103683",p:45.84,l:"Mega eG",
-     lws_req:"Силікатна фарба клас 3 паропроникна — для вологих приміщень",
-     catalog:[
-      {name:"Brillux",typ:"Виробник",preis:48.00,einheit:"12,5L",artikul:"Brillux Silikatfarbe 890 weiß",web:"www.brillux.de",note:"Силікатна фарба LWS — для вологих зон"},
-      {name:"Sto",typ:"Виробник",preis:51.00,einheit:"12,5L",artikul:"StoColor Sil weiß",web:"www.sto.de",note:"Мінеральна силікатна — відповідає вимогам LWS"}
-     ]},
-    {n:"Краска для бетонних поверхонь LIQUID 5L",d:"Flüssig Kunststoff 5L Bodenbeschichtung Betonfarbe",a:"B07GB1KJSK",p:66.99,l:"Hornbach"},
-    {n:"Краска для радіатора Mega 104 2,5L weiß",d:"MEGA 104 Classic Heizkörperlack 2,5L weiß",a:"3120522",p:24.58,l:"Mega eG"},
-    {n:"Краска для радіаторів SNIEZKA 0,75L",d:"Sniezka Do Kaloryferow 0,75L",a:"5903973011385",p:11.00,l:"Mari-Gro"},
-    {n:"Краска нікотинка-основна MEGA 328 12,5L",d:"MEGA 328 Isolierfarbe klassik-matt weiß 12,5l",a:"1108411",p:167.00,l:"Mega eG"},
-    {n:"Лезвія Запаски Для Малярного Ножа",d:"Klinge für Tepichmesser",a:"95670199",p:0.10,l:"Amazon"},
-    {n:"Мешки для Пилесоса",d:"Säcke für Staubsauger",a:"14792373476811",p:1.49,l:"Amazon"},
-    {n:"Мешки Муссорові Primafol LDPE 700x1100 Сині",d:"MEGA LDPE Abfallsack 50my 120L blau 700x1100mm",a:"3125537",p:11.38,l:"Mega eG"},
-    {n:"Наждачка Водостійка Р 80",d:"Schleifpapier WATERPROOF CLOTH 80",a:"2002010129373",p:1.53,l:"Amazon"},
-    {n:"Наждачка Водостійка Р 100",d:"Schleifpapier WATERPROOF CLOTH 100",a:"2002010129274",p:1.53,l:"Amazon"},
-    {n:"Наждачка Водостійка Р 120",d:"Schleifpapier R 120",a:"3211",p:1.53,l:"Amazon"},
-    {n:"Обої Rauhfaser Grob 125x0,75м (93,75м²)",d:"Rauhfaser Grobkorn Grosrolle 125,00x0,75m",a:"8030-000168",p:0.56,l:"Mega eG",
-     lws_req:"Raufaser для стін і стель",
-     catalog:[
-      {name:"Erfurt & Sohn KG",typ:"Виробник",preis:0.48,einheit:"м²",artikul:"Raufaser 52 PRO (E&S KG)",web:"www.erfurt.com",note:"Топ вибір LWS — Raufaser 52 PRO, офіційна модель каталогу"},
-      {name:"Brillux",typ:"Виробник",preis:0.52,einheit:"м²",artikul:"Raufaser 51 Brillux",web:"www.brillux.de",note:"Raufaser 51 — альтернатива LWS"},
-      {name:"Conpart",typ:"Виробник",preis:0.44,einheit:"м²",artikul:"Raufaser 1052 Conpart",web:"www.conpart.de",note:"Raufaser 1052 — найдешевший варіант з каталогу LWS"}
-     ]},
-    {n:"Обої вузькі Avantgarde 20x0,53м",d:"Erfurt Papier-Rauhfaser Avantgarde 20x0,53m",a:"",p:7.95,l:"Hornbach",
-     lws_req:"Raufaser для стін і стель",
-     catalog:[
-      {name:"Erfurt & Sohn KG",typ:"Виробник",preis:7.20,einheit:"рулон",artikul:"Erfurt Avantgarde 20x0,53m",web:"www.erfurt.com",note:"Оригінальний виробник — дешевше ніж Hornbach"},
-      {name:"Brillux",typ:"Виробник",preis:6.90,einheit:"рулон",artikul:"Raufaser 51 Kleinrolle Brillux",web:"www.brillux.de",note:"Відповідає вимогам LWS"}
-     ]},
-    {n:"Паска малярний 30мм ОБРАТКА",d:"Tasma malarska 30mm żółta",a:"",p:1.25,l:"Mari-Gro"},
-    {n:"Пена Soudal монтажна 750мл ОСНОВНА",d:"Soudal Soudafoam Gun B2 PU Schaum 750ml",a:"02-1001-0006",p:5.50,l:"Amazon"},
-    {n:"Плівка для накриття меблів 4x5м",d:"Abdeckfolie 4x5m",a:"10331",p:2.99,l:"Globus F"},
-    {n:"Скотч малярний 30мм 50м ОСНОВНИЙ",d:"Malerband 30mm 50m",a:"099234030",p:0.75,l:""},
-    {n:"СПРЕЙ ВІД ПЛЯМ Isolierweiss 400мл",d:"Flecken-Decker Isolierweiss 400ml Flakon",a:"4007555145011",p:10.99,l:"Globus F"},
-    {n:"Засіб від плісені 500мл",d:"CleanPrince Schimmelferner chlorfrei 500ml",a:"8594005390225",p:9.99,l:"Globus F"},
-    {n:"Уголок для шпаклівки Пластик 2,5м",d:"PVC ECKSCHUTZPROFILE 2500mm 25x25mm",a:"6796583",p:1.15,l:"Mari-Gro"},
-    {n:"Шпаклівка SINIAT 25kg (Стартова)",d:"Gips szpachlowy NIDA START SINIAT 25kg",a:"1487",p:10.05,l:"Mari-Gro"},
-    {n:"Шпаклівка SINIAT 25kg (Фінішна)",d:"Gips szpachlowy NIDA FINISH SINIAT 25kg",a:"5907697610534",p:10.40,l:"Mari-Gro"},
-    {n:"Шпаклівка акрилова AFP-77 POLIMIN 16kg",d:"AFP-77 POLIMIN Akrylowa masa szpachlowa 16kg",a:"",p:11.30,l:"Mari-Gro"},
-    {n:"Шпаклівка мінеральна 14kg MEGA 675",d:"MEGAgrün 675 Megamur Handspachtel EKF weiß 14kg",a:"3126044",p:23.79,l:"Mega eG"},
-    {n:"Шпаклівка по дереву 400г FEINSPACHTEL",d:"FEINSPACHTEL 400G TUBE DECOTRIC",a:"4007955334019",p:4.99,l:"Globus F"},
-    {n:"Штукатурка цементна Kalk-PUTZ MG III 25kg",d:"Putz/Mauermörtel Kalk-Zementmörtel MG III 25kg",a:"2104014",p:3.35,l:"Hornbach"},
-    {n:"Штукатурка KNAUF MP-75 30kg",d:"MEGA 620 Megamur Gipsleichtputz weiß 25kg",a:"3167402",p:10.75,l:"Hornbach"},
-    {n:"Штукатурка POLIMIN MG-50 30kg гіпсова",d:"Tynk gipsowy POLIMIN MG-50 30KG",a:"",p:7.89,l:"Mari-Gro"}
-  ]},
-  "4 - Гіпсокартон - Gipskartonplatten":{icon:"🧱",items:[
-    {n:"Гіпсокартон Knauf 12,5мм стандарт",d:"Knauf Goldband GKB 12,5mm",a:"",p:7.50,l:"Knauf"},
-    {n:"Гіпсокартон Knauf вологостійкий 12,5мм",d:"Knauf Diamant GKFI 12,5mm",a:"",p:9.20,l:"Knauf"},
-    {n:"Гіпс DOLINA-NIDY 30kg",d:"Gips Budowlany szybkowiążący 30kg",a:"02-05-00060",p:8.29,l:"Hornbach"}
-  ]},
-  "2 - Полы - Boden":{icon:"🏠",items:[
-    {n:"Естрих цемент 25кг",d:"Estrich Zement 25kg",a:"",p:6.90,l:"Hornbach"},
-    {n:"Покриття підлоги епоксид 5л",d:"Bodenbeschichtung Epoxid 5L",a:"",p:45.00,l:"Bauhaus"}
-  ]},
-  "6 - Silikon-Akryl":{icon:"🔧",items:[
-    {n:"Силікон санітарний білий 310мл",d:"Silikon Sanitär weiß 310ml",a:"",p:3.50,l:"Bauhaus"},
-    {n:"Акрил білий 310мл",d:"Acryl weiß 310ml",a:"",p:2.20,l:"Hornbach"}
-  ]},
-  "8 - Решетки, Вентиляція":{icon:"💨",items:[
-    {n:"Вентиляційна решітка 100мм біла",d:"Lüftungsgitter 100mm weiß",a:"",p:2.90,l:"Amazon"},
-    {n:"Вентиляційна решітка 125мм",d:"Lüftungsgitter 125mm",a:"",p:3.50,l:"Amazon"}
-  ]}
-}},
-"2 - Fliesen":{icon:"⬛",children:{
-  "Fliesen Material":{icon:"🔲",items:[
-    {n:"Клей для плитки С2 25кг",d:"Fliesekleber C2 25kg",a:"",p:12.50,l:"Bauhaus"},
-    {n:"Фугенмортель сірий 5кг",d:"Fugenmörtel grau 5kg",a:"",p:8.90,l:"Bauhaus"}
-  ]}
-}},
-"3 - Elektriker":{icon:"⚡",children:{
-  "Kabel - Кабель":{icon:"🔌",items:[
-    {n:"Кабель NYM 3x1,5мм 100м",d:"NYM-J 3x1,5mm² 100m",a:"",p:68.00,l:"Bauhaus"}
-  ]},
-  "KABELKANAL/ГОФРА":{icon:"📦",items:[
-    {n:"Кабельканал 20x10мм 2м білий",d:"Kabelkanal 20x10mm 2m weiß",a:"",p:1.20,l:"Amazon"}
-  ]}
-}},
-"4 - Sanitär":{icon:"🚿",children:{
-  "BEFESTIGUNG - Кріплення":{icon:"🔩",items:[
-    {n:"Дюбель SX 8x40мм (100шт)",d:"Dübel SX 8x40mm 100St",a:"",p:4.90,l:"Bauhaus"}
-  ]},
-  "FITTING - Фітинги":{icon:"🔧",items:[
-    {n:"Кут 1/2 дюйма латунь",d:"Winkel 1/2 Messing",a:"",p:2.80,l:"Bauhaus"}
-  ]}
-}}
-};
 
 
 
 var curItems=[],selItem=null,curTab='main';
 
+function countItems(node){
+  if(node.items) return node.items.length;
+  var s=0;
+  Object.values(node.children).forEach(function(c){ s+=countItems(c); });
+  return s;
+}
+
+function renderNode(name, node, container, depth, path){
+  if(node.children){
+    var gDiv=document.createElement('div');
+    gDiv.className='tg';
+    if(depth>0) gDiv.style.paddingLeft=(18+depth*14)+'px';
+    var tot=countItems(node);
+    gDiv.innerHTML='<span class="tg-ar">&#9658;</span><span class="tg-ic">'+(node.icon||'')+'</span><span class="tg-lb">'+name+'</span><span class="tg-ct">'+tot+'</span>';
+    gDiv.addEventListener('click',function(){togG(gDiv);});
+    var cDiv=document.createElement('div');
+    cDiv.className='tc';
+    Object.entries(node.children).forEach(function(ce){
+      renderNode(ce[0], ce[1], cDiv, depth+1, path.concat([ce[0]]));
+    });
+    container.appendChild(gDiv);
+    container.appendChild(cDiv);
+  } else {
+    var ti=document.createElement('div');
+    ti.className='ti';
+    ti.style.paddingLeft=(38+depth*14)+'px';
+    ti.innerHTML='<span class="ti-dot"></span><span class="ti-lb">'+(node.icon||'')+' '+name+'</span>';
+    ti.addEventListener('click',function(e){e.stopPropagation();loadItemNode(ti,node,path);});
+    container.appendChild(ti);
+  }
+}
+
 function buildTree(){
   var root=document.getElementById('treeRoot');
   root.innerHTML='';
   Object.entries(DB).forEach(function(ge){
-    var gn=ge[0],g=ge[1];
-    var tot=Object.values(g.children).reduce(function(s,c){return s+c.items.length;},0);
-    // Group header
-    var gDiv=document.createElement('div');
-    gDiv.className='tg';
-    gDiv.innerHTML='<span class="tg-ar">&#9658;</span><span class="tg-ic">'+g.icon+'</span><span class="tg-lb">'+gn+'</span><span class="tg-ct">'+tot+'</span>';
-    gDiv.addEventListener('click',function(){togG(gDiv);});
-    // Children
-    var cDiv=document.createElement('div');
-    cDiv.className='tc';
-    Object.entries(g.children).forEach(function(ce){
-      var cn=ce[0],ch=ce[1];
-      var ti=document.createElement('div');
-      ti.className='ti';
-      ti.innerHTML='<span class="ti-dot"></span><span class="ti-lb">'+ch.icon+' '+cn+'</span>';
-      ti.addEventListener('click',function(e){e.stopPropagation();loadG(ti,cn,gn);});
-      cDiv.appendChild(ti);
-    });
-    var wrapper=document.createElement('div');
-    wrapper.appendChild(gDiv);
-    wrapper.appendChild(cDiv);
-    root.appendChild(wrapper);
+    renderNode(ge[0], ge[1], root, 0, [ge[0]]);
   });
 }
-
 function togG(el){
   el.classList.toggle('open');
   el.nextElementSibling.classList.toggle('open');
 }
 
-function loadG(el,cn,gn){
+function loadItemNode(el,node,path){
   document.querySelectorAll('.ti').forEach(function(i){i.classList.remove('active');});
   el.classList.add('active');
   if(window.innerWidth<=860){
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('open');
   }
-  var ch=DB[gn].children[cn];
-  if(!ch)return;
-  curItems=ch.items; selItem=null;
+  curItems=node.items; selItem=null;
   document.getElementById('ws').style.display='none';
   document.getElementById('tc').style.display='block';
-  document.getElementById('tttl').textContent=ch.icon+' '+cn;
-  document.getElementById('tcnt').textContent=ch.items.length+' Positionen';
+  document.getElementById('tttl').textContent=node.icon+' '+path.join(' / ');
+  document.getElementById('tcnt').textContent=node.items.length+' Positionen';
   document.getElementById('tsearch').value='';
-  renderT(ch.items);
+  renderT(node.items);
 }
-
 function renderT(items){
   var tb=document.getElementById('tbody');
   tb.innerHTML='';
@@ -1380,13 +1271,14 @@ function renderSavingsReport(){
 
     // Find current item to get current price
     var curItem=null;
-    Object.values(DB).forEach(function(g){
-      Object.values(g.children).forEach(function(ch){
-        ch.items.forEach(function(it){
-          if(getItemKey(it)===itemKey) curItem=it;
-        });
-      });
-    });
+    function findItem(node){
+      if(node.items){
+        node.items.forEach(function(it){ if(getItemKey(it)===itemKey) curItem=it; });
+      } else if(node.children){
+        Object.values(node.children).forEach(findItem);
+      }
+    }
+    Object.values(DB).forEach(findItem);
     if(!curItem||!curItem.p){noDataCount++;return;}
 
     var curP=curItem.p;
