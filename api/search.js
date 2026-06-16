@@ -45,7 +45,7 @@ async function mainHandler(req, res) {
   async function resolveRedirect(redirectUrl) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
       const r = await fetch(redirectUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
       clearTimeout(timeoutId);
       if (r.url && !r.url.includes('vertexaisearch.cloud.google.com')) {
@@ -55,6 +55,17 @@ async function mainHandler(req, res) {
     } catch {
       return null;
     }
+  }
+
+  // Hard overall deadline for resolving ALL redirects together, regardless of how many
+  // chunks there are or how slow individual ones are. Protects total function duration.
+  async function resolveAllWithDeadline(chunksToResolve, deadlineMs) {
+    const resolvePromise = Promise.all(
+      chunksToResolve.map(async (c) => ({ title: c.title, uri: await resolveRedirect(c.redirectUri) }))
+    );
+    const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve([]), deadlineMs));
+    const result = await Promise.race([resolvePromise, timeoutPromise]);
+    return result;
   }
 
   async function callGemini(prompt, useSearch, jsonMode) {
@@ -92,12 +103,11 @@ async function mainHandler(req, res) {
     }
 
     // Resolve all redirect URIs to their real destination in parallel.
-    // Cap the number resolved to avoid runaway latency if Google returns many chunks.
-    const MAX_CHUNKS_TO_RESOLVE = 25;
+    // Cap the number resolved to avoid runaway latency if Google returns many chunks,
+    // AND enforce a hard overall deadline so a few slow/hanging requests can't blow the budget.
+    const MAX_CHUNKS_TO_RESOLVE = 15;
     const chunksToResolve = rawChunks.slice(0, MAX_CHUNKS_TO_RESOLVE);
-    const resolved = await Promise.all(
-      chunksToResolve.map(async (c) => ({ title: c.title, uri: await resolveRedirect(c.redirectUri) }))
-    );
+    const resolved = await resolveAllWithDeadline(chunksToResolve, 8000);
     const sources = resolved.filter((s) => s.uri);
 
     return { text, sources };
