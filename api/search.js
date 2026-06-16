@@ -226,7 +226,7 @@ ${'{{USER_MSG}}'}`;
   try {
     if (type === 'info') {
       const prompt = systemMsg + '\n\n' + userMsg + '\n\nAntwort NUR als JSON-Objekt, kein Text davor oder danach.';
-      let { text } = await callGemini(prompt, false, true);
+      let { text } = await callGemini(prompt, false, true, 25000);
       text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
       const j1 = text.indexOf('{'), j2 = text.lastIndexOf('}');
       if (j1 >= 0 && j2 >= 0) text = text.slice(j1, j2 + 1);
