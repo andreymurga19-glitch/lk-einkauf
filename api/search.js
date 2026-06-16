@@ -1,4 +1,36 @@
+// Allow more time for: Step1 search + parallel redirect resolution + Step2 formatting.
+// Hobby plan caps this at 10s by default (sometimes effectively even less) which is why
+// the function could be killed mid-flight by Vercel before our own catch{} could respond.
+export const config = {
+  maxDuration: 60,
+};
+
+// Allow more time for: Step1 search + parallel redirect resolution + Step2 formatting.
+// Hobby plan caps this at 10s by default (sometimes effectively even less) which is why
+// the function could be killed mid-flight by Vercel before our own catch{} could respond.
+export const config = {
+  maxDuration: 60,
+};
+
 export default async function handler(req, res) {
+  // OUTER safety net: catches synchronous errors too (e.g. malformed req.body),
+  // not just errors thrown inside the inner try/catch below. Without this,
+  // an early crash never reaches our JSON error response and the client sees
+  // Vercel's raw HTML/text error page instead, which breaks JSON.parse() on the frontend.
+  try {
+    return await mainHandler(req, res);
+  } catch (outerErr) {
+    console.error('OUTER HANDLER CRASH:', outerErr?.stack || outerErr);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        error: 'outer_crash: ' + (outerErr?.message || String(outerErr)),
+        stack: outerErr?.stack || null,
+      });
+    }
+  }
+}
+
+async function mainHandler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -20,7 +52,7 @@ export default async function handler(req, res) {
   async function resolveRedirect(redirectUrl) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
       const r = await fetch(redirectUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
       clearTimeout(timeoutId);
       if (r.url && !r.url.includes('vertexaisearch.cloud.google.com')) {
@@ -66,9 +98,12 @@ export default async function handler(req, res) {
       }
     }
 
-    // Resolve all redirect URIs to their real destination in parallel
+    // Resolve all redirect URIs to their real destination in parallel.
+    // Cap the number resolved to avoid runaway latency if Google returns many chunks.
+    const MAX_CHUNKS_TO_RESOLVE = 15;
+    const chunksToResolve = rawChunks.slice(0, MAX_CHUNKS_TO_RESOLVE);
     const resolved = await Promise.all(
-      rawChunks.map(async (c) => ({ title: c.title, uri: await resolveRedirect(c.redirectUri) }))
+      chunksToResolve.map(async (c) => ({ title: c.title, uri: await resolveRedirect(c.redirectUri) }))
     );
     const sources = resolved.filter((s) => s.uri);
 
@@ -181,10 +216,12 @@ export default async function handler(req, res) {
       return res.status(200).json({ text });
     }
 
+    const t0 = Date.now();
     // AI tab - TWO STEPS using Andrii's fixed prompt
     // Step 1: Search with Google Search using the fixed procurement prompt
     const searchPrompt = PROCUREMENT_SYSTEM_PROMPT + '\n\n---\n\n' + userMsg;
     const { text: searchResults, sources } = await callGemini(searchPrompt, true);
+    console.log(`[search] Step1 done in ${Date.now() - t0}ms, sources resolved: ${sources.length}`);
 
     // sources now contain REAL resolved destination URLs (redirect already followed in callGemini).
     // Deduplicate by final URL.
@@ -198,6 +235,7 @@ export default async function handler(req, res) {
     let sourcesList = uniqueSources.length
       ? uniqueSources.map((s, idx) => `[${idx + 1}] domain: ${s.title || '(unbekannt)'} | echte URL: ${s.uri}`).join('\n')
       : '(Keine verifizierten Quellen-URLs gefunden)';
+    console.log(`[search] unique sources: ${uniqueSources.length}`);
 
     // Step 2: Format search results as JSON matching the required output structure
     const formatPrompt = `Du hast folgende Recherche-Ergebnisse:
@@ -241,15 +279,21 @@ Wenn im Recherche-Text derselbe Lieferant/Hersteller mehrmals erscheint (z.B. we
   "preisanfrage_brief": "Якщо для Großhandel ціна не знайдена - офіційний лист-запит ціни німецькою мовою від L.K Bauservice (Sehr geehrte Damen und Herren, wir von L.K Bauservice...), інакше null"
 }`;
 
+    const t1 = Date.now();
     let { text: jsonText } = await callGemini(formatPrompt, false, true);
+    console.log(`[search] Step2 done in ${Date.now() - t1}ms, total: ${Date.now() - t0}ms`);
     jsonText = jsonText.replace(/```json/gi, '').replace(/```/g, '').trim();
     const j1 = jsonText.indexOf('{'), j2 = jsonText.lastIndexOf('}');
     if (j1 >= 0 && j2 >= 0) jsonText = jsonText.slice(j1, j2 + 1);
 
     jsonText = sanitizeJson(jsonText);
-    return res.status(200).json({ text: jsonText });
+    return res.status(200).json({ text: jsonText, _debug: { sourcesFound: uniqueSources.length, totalMs: Date.now() - t0 } });
 
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error('INNER HANDLER ERROR:', err?.stack || err);
+    return res.status(500).json({
+      error: err?.message || String(err),
+      stack: err?.stack || null,
+    });
   }
 }
