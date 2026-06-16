@@ -52,7 +52,7 @@ async function mainHandler(req, res) {
   async function resolveRedirect(redirectUrl) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
       const r = await fetch(redirectUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
       clearTimeout(timeoutId);
       if (r.url && !r.url.includes('vertexaisearch.cloud.google.com')) {
