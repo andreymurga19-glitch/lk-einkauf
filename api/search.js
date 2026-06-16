@@ -45,7 +45,7 @@ async function mainHandler(req, res) {
   async function resolveRedirect(redirectUrl) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
       const r = await fetch(redirectUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
       clearTimeout(timeoutId);
       if (r.url && !r.url.includes('vertexaisearch.cloud.google.com')) {
@@ -93,7 +93,7 @@ async function mainHandler(req, res) {
 
     // Resolve all redirect URIs to their real destination in parallel.
     // Cap the number resolved to avoid runaway latency if Google returns many chunks.
-    const MAX_CHUNKS_TO_RESOLVE = 15;
+    const MAX_CHUNKS_TO_RESOLVE = 25;
     const chunksToResolve = rawChunks.slice(0, MAX_CHUNKS_TO_RESOLVE);
     const resolved = await Promise.all(
       chunksToResolve.map(async (c) => ({ title: c.title, uri: await resolveRedirect(c.redirectUri) }))
@@ -140,9 +140,10 @@ async function mainHandler(req, res) {
    - Сантехніка/опалення: Sanitär-Großhandel (напр. Richter+Frenzel, GC-Gruppe/GC Elektroglas, Brink)
    - Будматеріали/гіпсокартон/деревина: Stark, Raab Karcher, Bauking
    ЗАБОРОНЕНО вказувати постачальника з невідповідної категорії (наприклад MEGA eG для кабелю) лише тому що він був релевантним для іншого товару раніше в розмові. Якщо точний релевантний Großhandel не знайдено реальним пошуком — НЕ вигадуй назву, краще пропусти цю групу повністю.
+   КРИТИЧНО — ТІЛЬКИ ОФІЦІЙНИЙ САЙТ ВИРОБНИКА/ГРОСХАНДЕЛА, БЕЗ ПЕРЕКУПНИКІВ: Для категорії Großhandel шукай товар ВИКЛЮЧНО на офіційному сайті самого виробника або офіційного гросхандела (напр. brillux.de, caparol.de, mega-eg.de, relius.de, richter-frenzel.de) — НЕ на сторонніх маркетплейсах, інтернет-магазинах-перекупниках чи агрегаторах (типу Designbodenshop, dein-traumzimmer, Outtec24, Wurzbacher як онлайн-перепродавець тощо), які продають той самий товар з більшою накруткою. Перекупники йдуть лише в категорію "Online/Amazon" (група 3), НІКОЛИ не в "Großhandel". Якщо пошук на офіційному сайті виробника не дав сторінки конкретного товару — все ще вкажи постачальника зі статусом "Ціну потрібно уточнити" та посиланням на головну/каталог сайту виробника, АЛЕ НЕ замінюй його сторонньою перекупною сторінкою.
    Якщо ціни закриті через необхідність логіну, став статус "Ціну потрібно уточнити".
 2. Baumärkte (Globus Baumarkt у Зальцгіттері, Hornbach у Брауншвайгу, Sonderpreis Baumarkt): Тут ти зобов'язаний знайти точний артикул, АКТУАЛЬНУ ЦІНУ (число) та пряме посилання на товар — УСІ ТРИ поля одночасно.
-3. Топ-онлайн-магазини та Amazon: Шукай дешевші альтернативи для розхідників (валики, наждачні диски для жирафа). Вказівка артикула, ціни та прямого посилання є обов'язковою.
+3. Топ-онлайн-магазини та Amazon: Шукай дешевші альтернативи для розхідників (валики, наждачні диски для жирафа). Сюди ж відносяться перекупники/маркетплейси, які перепродають товари Großhandel-виробників (Designbodenshop, dein-traumzimmer, Outtec24 тощо) — для них вказівка артикула, ціни та прямого посилання є обов'язковою, але вони НЕ замінюють пункт 1 (офіційний Großhandel), а є додатковою альтернативою з вищою ціною.
 
 КРИТИЧНО ПРО BAUMARKT — "ВСЕ АБО НІЧОГО":
 Якщо для Baumarkt-постачальника ти знайшов артикул товару, але НЕ зміг знайти ЧИСЛОВУ ЦІНУ на тій самій сторінці — це означає що товар НЕ підтверджено повністю. У такому разі ПОВНІСТЮ ВИКЛЮЧИ цього постачальника з результату (не додавай його в масив lieferanten взагалі). НІКОЛИ не показуй для Baumarkt запис з артикулом але без ціни і статусом "Ціну потрібно уточнити" — такий статус для Baumarkt СУВОРО ЗАБОРОНЕНИЙ за будь-яких обставин. Краще менше постачальників, але кожен — повністю підтверджений (артикул + ціна + посилання).
@@ -242,11 +243,12 @@ Erstelle jetzt NUR ein JSON-Objekt basierend auf diesen Ergebnissen, gemäß fol
 Kein Text vor oder nach dem JSON. Nur das JSON-Objekt.
 
 KRITISCH ZU produkt_url — NEUE REGEL:
-Der Recherche-Text oben kann Zeilen "URL: <adresse>" enthalten — IGNORIERE DIESE ZEILEN VOLLSTÄNDIG, sie sind oft vom Modell erfunden/rekonstruiert und führen zu 404-Fehlern. Die EINZIGE gültige Quelle für produkt_url ist die Liste "ECHTE, VERIFIZIERTE QUELLEN-URLS" oben — das sind echte URLs, die durch tatsächliches Auflösen von Suchergebnis-Links gewonnen wurden.
+Der Recherche-Text oben kann Zeilen "URL: <adresse>" enthalten — IGNORIERE DIESE ZEILEN VOLLSTÄNDIG, sie sind oft vom Modell erfunden/rekonstruiert und führen zu 404-Fehlern. Die EINZIGE gültige Quelle für eine PRODUKT-spezifische produkt_url ist die Liste "ECHTE, VERIFIZIERTE QUELLEN-URLS" oben — das sind echte URLs, die durch tatsächliches Auflösen von Suchergebnis-Links gewonnen wurden.
 Für jedes Produkt in lieferanten:
 1. Suche in der Liste "ECHTE, VERIFIZIERTE QUELLEN-URLS" nach einem Eintrag, dessen Domain/Titel zum Hersteller/Shop dieses Produkts passt (z.B. wenn hersteller="Hornbach", suche einen Eintrag mit domain "hornbach.de").
 2. Wenn ein passender Eintrag existiert: kopiere die "echte URL" EXAKT (Zeichen für Zeichen) als produkt_url.
-3. Wenn KEIN passender Eintrag in der Liste existiert: setze produkt_url auf null. NIEMALS eine URL erfinden, raten, kürzen oder aus dem Text rekonstruieren - exakte Kopie aus der Liste oder null, keine dritte Option.
+3. Wenn KEIN passender Eintrag existiert, ABER du einen Artikel + Preis für diesen Lieferanten gefunden hast: setze produkt_url auf eine Suchseiten-URL der Form "https://www.<domain-des-shops>/search?q=<urlencodierter-produktname>" (z.B. "https://www.hornbach.de/search?searchTerm=Polarweiss%20Plus%2010l") — das bringt den Nutzer zumindest auf die richtige Suchergebnisseite des richtigen Shops, statt gar kein Link. Nutze dafür die dir bekannte Such-URL-Struktur des jeweiligen Shops, falls bekannt; sonst https://www.<domain>/?s=<produktname> als generischer Fallback.
+4. Wenn weder ein passender Eintrag noch genug Information für eine sinnvolle Such-URL existiert: setze produkt_url auf null. NIEMALS eine spezifische Produkt-URL erfinden, raten, kürzen oder aus dem Text rekonstruieren.
 
 KRITISCH — DEDUPLIZIERUNG VON LIEFERANTEN:
 Wenn im Recherche-Text derselbe Lieferant/Hersteller mehrmals erscheint (z.B. weil mehrere Suchanfragen denselben Shop gefunden haben), darf er NUR EINMAL im lieferanten-Array erscheinen. Bei Duplikaten: behalte nur den Eintrag mit der besten Datenqualität (echte produkt_url vorhanden > numerischer Preis vorhanden > vollständigerer Artikel). Gruppiere nach hersteller-Name (Groß-/Kleinschreibung ignorieren, z.B. "Wurzbacher GmbH" und "Wurzbacher" sind derselbe Lieferant).
