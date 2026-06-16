@@ -68,7 +68,7 @@ async function mainHandler(req, res) {
     return result;
   }
 
-  async function callGemini(prompt, useSearch, jsonMode) {
+  async function callGemini(prompt, useSearch, jsonMode, timeoutMs = 20000) {
     const body = {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
@@ -80,11 +80,24 @@ async function mainHandler(req, res) {
     if (useSearch) body.tools = [{ google_search: {} }];
     if (jsonMode) body.generationConfig.responseMimeType = 'application/json';
 
-    const r = await fetch(BASE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    let r;
+    try {
+      r = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+    } catch (e) {
+      clearTimeout(timeoutId);
+      if (e.name === 'AbortError') {
+        throw new Error(`Gemini-Anfrage hat das Zeitlimit von ${timeoutMs}ms überschritten`);
+      }
+      throw e;
+    }
+    clearTimeout(timeoutId);
     const data = await r.json();
     if (!r.ok) throw new Error(data.error?.message || 'Gemini error');
 
@@ -225,7 +238,7 @@ Baumarkt-сайти (Hornbach, Globus, Bauhaus) — публічні катал�
     // AI tab - TWO STEPS using Andrii's fixed prompt
     // Step 1: Search with Google Search using the fixed procurement prompt
     const searchPrompt = PROCUREMENT_SYSTEM_PROMPT + '\n\n---\n\n' + userMsg;
-    const { text: searchResults, sources } = await callGemini(searchPrompt, true);
+    const { text: searchResults, sources } = await callGemini(searchPrompt, true, false, 18000);
     console.log(`[search] Step1 done in ${Date.now() - t0}ms, sources resolved: ${sources.length}`);
 
     // sources now contain REAL resolved destination URLs (redirect already followed in callGemini).
@@ -289,7 +302,7 @@ Wenn im Recherche-Text derselbe Lieferant/Hersteller mehrmals erscheint (z.B. we
 }`;
 
     const t1 = Date.now();
-    let { text: jsonText } = await callGemini(formatPrompt, false, true);
+    let { text: jsonText } = await callGemini(formatPrompt, false, true, 12000);
     console.log(`[search] Step2 done in ${Date.now() - t1}ms, total: ${Date.now() - t0}ms`);
     jsonText = jsonText.replace(/```json/gi, '').replace(/```/g, '').trim();
     const j1 = jsonText.indexOf('{'), j2 = jsonText.lastIndexOf('}');
