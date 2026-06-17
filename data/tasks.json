@@ -25,8 +25,9 @@
     "id": "task_1781701626142",
     "text": "Написати за шини в щиток",
     "type": "local",
-    "done": false,
-    "created": 1781701626142
+    "done": true,
+    "created": 1781701626142,
+    "completedAt": 1781701967712
   },
   {
     "id": "task_1781701612175",
