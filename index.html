@@ -1568,7 +1568,7 @@ function renderTasks(){
   var list = document.getElementById('tasksList');
 
   // Update nav badge with count of undone global tasks
-  var globalUndone = tasks.filter(function(t){return t.type==='global' && !t.done;}).length;
+  var globalUndone = tasks.filter(function(t){return !t.done;}).length;
   var badge = document.getElementById('taskBadgeNav');
   badge.innerHTML = globalUndone>0
     ? ' <span style="background:var(--gold);color:#1a2332;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:2px">'+globalUndone+'</span>'
