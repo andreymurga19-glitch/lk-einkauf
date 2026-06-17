@@ -41,7 +41,8 @@
     "id": "task_1781701598663",
     "text": "Вийти на Вюрт",
     "type": "global",
-    "done": false,
-    "created": 1781701598663
+    "done": true,
+    "created": 1781701598663,
+    "completedAt": 1781702510797
   }
 ]
