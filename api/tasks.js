@@ -1,5 +1,6 @@
 // api/tasks.js
 // Shared task storage synced across devices via a JSON file in this same GitHub repo.
+// trigger redeploy after adding GITHUB_TOKEN env var
 // The GitHub token lives ONLY here (server-side env var), never exposed to the browser.
 // GET  -> returns the current task list
 // POST -> receives the full updated task list and writes it back to GitHub
