@@ -17,9 +17,9 @@
     "id": "task_1781701641942",
     "text": "Заказати дверці для щитка",
     "type": "local",
-    "done": true,
+    "done": false,
     "created": 1781701641942,
-    "completedAt": 1781701976388
+    "completedAt": null
   },
   {
     "id": "task_1781701626142",
