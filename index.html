@@ -258,7 +258,8 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
 .mic-btn.recording{background:linear-gradient(135deg,#dc2626,#ef4444);animation:pulse-rec 1.2s infinite;}
 @keyframes pulse-rec{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4);}50%{box-shadow:0 0 0 16px rgba(220,38,38,0);}}
 .mic-status{font-size:12px;color:var(--mut);font-family:"JetBrains Mono",monospace;letter-spacing:1px;}
-.mic-transcript{margin-top:14px;font-size:15px;color:var(--txt);min-height:24px;line-height:1.5;}
+.mic-transcript{margin-top:14px;font-size:15px;color:var(--txt);min-height:24px;line-height:1.5;width:100%;box-sizing:border-box;border:1px solid var(--brd);border-radius:6px;padding:10px 12px;font-family:inherit;background:#fff;resize:vertical;}
+.mic-transcript:focus{outline:none;border-color:var(--gold);}
 .mic-actions{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
 .mic-act-btn{padding:9px 20px;border-radius:6px;border:1px solid var(--brd);background:#fff;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .15s;}
 .mic-act-btn.local{border-color:#3b82f6;color:#1d4ed8;}
@@ -391,7 +392,7 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
     <div class="mic-card">
       <button class="mic-btn" id="micBtn" onclick="toggleMic()">&#127908;</button>
       <div class="mic-status" id="micStatus">Натисни і скажи задачу</div>
-      <div class="mic-transcript" id="micTranscript"></div>
+      <textarea class="mic-transcript" id="micTranscript" placeholder="Текст задачі (можна редагувати вручну)" rows="3" oninput="onTranscriptEdit(this.value)"></textarea>
       <div class="mic-actions" id="micActions" style="display:none">
         <button class="mic-act-btn local" id="saveLocalBtn" onclick="saveTask('local')">&#128204; Локальна задача</button>
         <button class="mic-act-btn global" id="saveGlobalBtn" onclick="saveTask('global')">&#11088; Глобальна задача</button>
@@ -1385,24 +1386,55 @@ function switchSection(sec){
     document.getElementById(id).classList.remove('active');
   });
   document.getElementById('secBtn'+sec.charAt(0).toUpperCase()+sec.slice(1)).classList.add('active');
-  if(sec==='tasks') renderTasks();
+  if(sec==='tasks'){ renderTasks(); loadTasksFromServer(); }
 }
 
 // ═══════════════════════════════════
 // TASKS - VOICE INPUT
 // ═══════════════════════════════════
-var TASKS_KEY = 'lk_tasks_v1';
+var TASKS_KEY = 'lk_tasks_v1'; // local cache fallback only; source of truth is /api/tasks
 var recognition = null;
 var isRecording = false;
 var baseTranscript = '';   // text from previous completed recording sessions (not yet saved)
 var currentTranscript = ''; // full combined text (base + current session)
+var _tasksCache = null; // in-memory cache, populated from localStorage then refreshed from server
+var _tasksSyncInFlight = false;
 
 function getTasks(){
-  try{ return JSON.parse(localStorage.getItem(TASKS_KEY)||'[]'); }
-  catch(e){ return []; }
+  if(_tasksCache !== null) return _tasksCache;
+  try{ _tasksCache = JSON.parse(localStorage.getItem(TASKS_KEY)||'[]'); }
+  catch(e){ _tasksCache = []; }
+  return _tasksCache;
 }
+
 function saveTasks(arr){
-  localStorage.setItem(TASKS_KEY, JSON.stringify(arr));
+  _tasksCache = arr;
+  try{ localStorage.setItem(TASKS_KEY, JSON.stringify(arr)); }catch(e){}
+  syncTasksToServer(arr);
+}
+
+// Push the full task list to the server (cross-device sync). Fire-and-forget with retry-on-next-change.
+function syncTasksToServer(arr){
+  fetch('/api/tasks', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({tasks: arr})
+  }).catch(function(e){ console.error('Task sync failed (will retry on next change):', e); });
+}
+
+// Pull the latest task list from the server on page load, so a task added on another device shows up here.
+async function loadTasksFromServer(){
+  try{
+    var resp = await fetch('/api/tasks');
+    var data = await resp.json();
+    if(data && Array.isArray(data.tasks)){
+      _tasksCache = data.tasks;
+      try{ localStorage.setItem(TASKS_KEY, JSON.stringify(data.tasks)); }catch(e){}
+      renderTasks();
+    }
+  }catch(e){
+    console.error('Could not load tasks from server, using local cache:', e);
+  }
 }
 
 function toggleMic(){
@@ -1434,7 +1466,7 @@ function toggleMic(){
       sessionText += event.results[i][0].transcript;
     }
     currentTranscript = (baseTranscript + ' ' + sessionText).trim();
-    document.getElementById('micTranscript').textContent = currentTranscript;
+    document.getElementById('micTranscript').value = currentTranscript;
   };
 
   recognition.onerror = function(event){
@@ -1469,6 +1501,12 @@ function toggleMic(){
   }
 }
 
+function onTranscriptEdit(newText){
+  currentTranscript = newText;
+  baseTranscript = newText;
+  document.getElementById('micActions').style.display = newText.trim() ? 'flex' : 'none';
+}
+
 function saveTask(type){
   var text = currentTranscript.trim();
   if(!text) return;
@@ -1485,7 +1523,7 @@ function saveTask(type){
   // Reset mic UI
   currentTranscript = '';
   baseTranscript = '';
-  document.getElementById('micTranscript').textContent = '';
+  document.getElementById('micTranscript').value = '';
   document.getElementById('micActions').style.display = 'none';
   document.getElementById('micStatus').textContent = '\u2713 \u0417\u0430\u043f\u0438\u0441\u0430\u043d\u043e! \u041d\u0430\u0442\u0438\u0441\u043d\u0438 \u0456 \u0441\u043a\u0430\u0436\u0438 \u043d\u0430\u0441\u0442\u0443\u043f\u043d\u0443';
 
@@ -1609,6 +1647,7 @@ function renderTasks(){
 
 buildTree();
 renderTasks();
+loadTasksFromServer();
 seedTrackerEntries();
 updateTrackerBadge();
 </script>
