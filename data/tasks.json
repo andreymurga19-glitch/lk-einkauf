@@ -17,8 +17,9 @@
     "id": "task_1781701754335",
     "text": "Зробити накладну для Діми",
     "type": "local",
-    "done": false,
-    "created": 1781701754335
+    "done": true,
+    "created": 1781701754335,
+    "completedAt": 1781723282036
   },
   {
     "id": "task_1781701681694",
