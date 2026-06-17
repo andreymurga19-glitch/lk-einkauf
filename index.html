@@ -270,14 +270,14 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
 
 .task-section-hdr{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);font-weight:700;margin:18px 0 8px;font-family:"JetBrains Mono",monospace;display:flex;align-items:center;gap:8px;}
 .task-item{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid var(--brd);border-radius:8px;padding:12px 14px;margin-bottom:8px;transition:all .15s;}
-.task-item.done{opacity:.5;}
+.task-item.done{background:#fafaf8;}
 .task-item.global{border-left:3px solid var(--gold);}
 .task-item.local{border-left:3px solid #3b82f6;}
 .task-check{width:20px;height:20px;border-radius:5px;border:2px solid var(--brd);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:1px;background:#fff;transition:all .15s;}
 .task-check.checked{background:var(--ok);border-color:var(--ok);color:#fff;}
 .task-body{flex:1;}
 .task-text{font-size:13px;color:var(--txt);line-height:1.5;}
-.task-item.done .task-text{text-decoration:line-through;}
+.task-item.done .task-text{color:var(--mut);}
 .task-meta{font-size:10px;color:var(--mut);margin-top:4px;font-family:"JetBrains Mono",monospace;}
 .task-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:3px;text-transform:uppercase;margin-right:6px;}
 .task-badge.global{background:rgba(240,180,41,.15);color:#b8780a;}
