@@ -17,17 +17,17 @@
     "id": "task_1781701641942",
     "text": "Заказати дверці для щитка",
     "type": "local",
-    "done": false,
+    "done": true,
     "created": 1781701641942,
-    "completedAt": null
+    "completedAt": 1781701976388
   },
   {
     "id": "task_1781701626142",
     "text": "Написати за шини в щиток",
     "type": "local",
-    "done": true,
+    "done": false,
     "created": 1781701626142,
-    "completedAt": 1781701967712
+    "completedAt": null
   },
   {
     "id": "task_1781701612175",
