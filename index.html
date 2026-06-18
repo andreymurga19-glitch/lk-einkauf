@@ -571,7 +571,18 @@ function doMain(){
   var btnG=document.createElement('a');
   btnG.className='sbtn gb'; btnG.textContent='🔍 Google'; btnG.target='_blank';
   btnG.href='https://www.google.de/search?q='+encodeURIComponent(item.l+' '+item.d);
-  acts.appendChild(btnQ); acts.appendChild(btnG);
+  var btnW=document.createElement('a');
+  btnW.className='sbtn gb'; btnW.textContent='🏗️ wlw.de'; btnW.target='_blank';
+  btnW.title='Назву товару скопійовано в буфер — вставте в поле пошуку на wlw.de';
+  // NOTE: wlw.de blocks automated crawling (robots.txt), so the exact deep-search URL
+  // structure could not be verified. Linking to the homepage avoids guessing a path that
+  // might 404 — the search term is copied to clipboard so it can be pasted into wlw's own
+  // search box after the page opens.
+  btnW.href='https://www.wlw.de/de';
+  btnW.addEventListener('click',function(){
+    try{ navigator.clipboard.writeText(item.l+' '+item.d); }catch(e){}
+  });
+  acts.appendChild(btnQ); acts.appendChild(btnG); acts.appendChild(btnW);
 }
 
 function doCat(){
