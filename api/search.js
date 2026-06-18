@@ -186,8 +186,7 @@ ${'{{USER_MSG}}'}`;
 
   const ONLINE_PROMPT = `${LWS_CATEGORY_RULES}
 
-ЗАВДАННЯ: Знайти товар серед топ онлайн-магазинів та Amazon.de, включно з перекупниками/маркетплейсами що перепродають товари Großhandel-виробників (Designbodenshop, dein-traumzimmer, Outtec24 тощо) — для цієї категорії перекупники цілком доречні.
-Для кожного знайденого товару обов'язково вкажи артикул, ціну та де саме на сайті ти це бачив.
+ЗАВДАННЯ: Знайти товар серед топ ОНЛАЙН-МАГАЗИНІВ-ПЕРЕКУПНИКІВ та Amazon.de (НЕ офіційних сайтів виробників — ті йдуть в категорію Großhandel, шукай тут ІНШІ джерела): спеціалізовані інтернет-магазини фарб/будматеріалів (Designbodenshop, dein-traumzimmer, Outtec24, farbenhit.de, raabkarcher24.de тощо), Amazon.de, eBay Kleinanzeigen для нових товарів. Якщо для конкретного бренду немає реального онлайн-перекупника — краще напиши явно "не знайдено онлайн-перекупника для цього товару", НІЖ повторювати інформацію про офіційний сайт виробника, яка вже буде в категорії Großhandel. Артикул і ціна тут мають стосуватись САМЕ цього окремого магазину-перекупника, а не копіюватись з даних виробника.
 
 ---
 ${'{{USER_MSG}}'}`;
@@ -279,8 +278,14 @@ ${sourcesList}
 Erstelle jetzt NUR ein JSON-Objekt basierend auf diesen Ergebnissen, gemäß folgender Struktur (alle Texte auf Ukrainisch, außer Briefvorlage auf Deutsch):
 Kein Text vor oder nach dem JSON. Nur das JSON-Objekt.
 
+KRITISCH — KEINE EINTRÄGE OHNE ARTIKEL:
+Wenn für einen Lieferanten kein konkreter Artikel/Produktcode im Recherche-Text gefunden wurde (nur eine allgemeine Markennennung ohne spezifisches Produkt), ENTFERNE diesen Eintrag KOMPLETT aus dem lieferanten-Array. Setze artikul NIEMALS auf null und behalte den Eintrag trotzdem — ein Eintrag mit artikul=null darf NICHT im finalen Array erscheinen. Das gilt für ALLE Kategorien (Großhandel, Baumarkt, Online/Amazon) ohne Ausnahme.
+
 KRITISCH — KEINE WIEDERVERKÄUFER ALS "Großhandel":
 Wenn im Recherche-Text ein Eintrag als "Großhandel" bezeichnet wird, aber der Domain-Name/Shop-Name NICHT der offizielle Hersteller selbst oder ein bekannter Fach-Großhändler ist (z.B. Designbodenshop, dein-traumzimmer, Outtec24, Wurzbacher als Online-Wiederverkäufer, oder jeder andere generische Online-Shop, der Markenprodukte weiterverkauft) — setze für diesen Eintrag kategoriya="Online/Amazon", NICHT "Großhandel", unabhängig davon wie der Recherche-Text ihn labelt. "Großhandel" ist NUR für: den offiziellen Hersteller selbst (z.B. brillux.de, caparol.de, mega-eg.de) ODER einen anerkannten Fach-Großhändler mit physischen Niederlassungen (z.B. Richter+Frenzel, Sonepar, Stark, Raab Karcher, Bauking, Schlau). Bei Unsicherheit: wenn der Preis im Recherche-Text auffällig höher ist als bei anderen Quellen für dasselbe Produkt, ist es wahrscheinlich ein Wiederverkäufer -> "Online/Amazon".
+
+KRITISCH — KEINE DUPLIKATE ZWISCHEN GROßHANDEL UND ONLINE/AMAZON:
+Der Recherche-Text oben besteht aus drei separaten Abschnitten (GROßHANDEL, BAUMARKT, ONLINE/AMAZON). Diese drei Suchen liefen unabhängig voneinander und könnten denselben Hersteller/Anbieter mit identischen Daten (gleicher Preis, gleicher Artikel) mehrfach gefunden haben. Prüfe das EXPLIZIT: wenn ein hersteller-Name (z.B. "Brillux") mit identischem oder fast identischem Preis sowohl im GROßHANDEL- als auch im ONLINE/AMAZON-Abschnitt erscheint, ist das ein Duplikat derselben Quelle — behalte den Eintrag NUR im GROßHANDEL-Abschnitt und entferne ihn aus Online/Amazon. Ein echter "Online/Amazon"-Eintrag muss eine ANDERE, eigenständige Quelle/URL sein als der entsprechende Großhandel-Eintrag, nicht nur eine Kopie mit anderem Label.
 
 KRITISCH ZU produkt_url — "ALLES ODER NICHTS":
 Der Recherche-Text oben kann Zeilen "URL: <adresse>" enthalten — IGNORIERE DIESE ZEILEN VOLLSTÄNDIG, sie sind oft vom Modell erfunden/rekonstruiert und führen zu 404-Fehlern. Die EINZIGE gültige Quelle für produkt_url ist die Liste "ECHTE, VERIFIZIERTE QUELLEN-URLS" oben — das sind echte URLs, die durch tatsächliches Auflösen von Suchergebnis-Links gewonnen wurden.
