@@ -573,8 +573,16 @@ function doMain(){
   btnG.href='https://www.google.de/search?q='+encodeURIComponent(item.l+' '+item.d);
   var btnW=document.createElement('a');
   btnW.className='sbtn gb'; btnW.textContent='🏗️ wlw.de'; btnW.target='_blank';
-  btnW.title='Пошук постачальників на wlw.de (Wer liefert was)';
-  btnW.href=buildWlwUrl(item.l+' '+item.d);
+  btnW.title='Назву товару скопійовано в буфер — вставте в поле пошуку на wlw.de';
+  // NOTE: wlw.de indexes general product CATEGORIES (e.g. "Sanitärarmaturen"), not specific
+  // SKUs with exact volumes/article numbers, and category names need to be in German.
+  // Auto-building a search URL from the 1C item name (which is in Ukrainian, with brand/volume/
+  // article baked in) reliably returns 0 results. Safer: link to the homepage and copy the
+  // search term to the clipboard so the user can paste and adjust it themselves.
+  btnW.href='https://www.wlw.de/de';
+  btnW.addEventListener('click',function(){
+    try{ navigator.clipboard.writeText(item.l+' '+item.d); }catch(e){}
+  });
   acts.appendChild(btnQ); acts.appendChild(btnG); acts.appendChild(btnW);
 }
 
@@ -1005,6 +1013,26 @@ function slugifyWlw(text){
     .replace(/[^a-z0-9\s-]/g,'')
     .trim()
     .replace(/\s+/g,'-');
+}
+// wlw.de is a B2B supplier directory: it indexes general product CATEGORIES
+// (e.g. "Sanitärarmaturen"), not specific SKUs with exact volumes/article numbers.
+// Searching with a full 1C item name (incl. liters, brand, article) returns 0 results,
+// so we extract a short category phrase instead — from lws_req if available (it already
+// holds a clean category description), falling back to the first few words of the item name.
+function wlwSearchTerm(item){
+  if(item.lws_req){
+    // Strip a leading "[КАТ.x — ...]" tag and keep only the descriptive part after it
+    var cleaned=item.lws_req.replace(/^\[[^\]]*\]\s*/,'');
+    // Cut at the first " — " or ":" separator if present (keeps just the category name)
+    var dashIdx=cleaned.indexOf(' — ');
+    if(dashIdx>0) cleaned=cleaned.substring(0,dashIdx);
+    // Keep it short: first 4-5 words is usually enough for a category search
+    var words=cleaned.trim().split(/\s+/).slice(0,5).join(' ');
+    if(words) return words;
+  }
+  // Fallback: first 3 words of the item's own name/description, without numbers/units
+  var base=(item.d||item.n||'').replace(/[\d.,]+\s*(l|kg|mm|cm|m|stk|st)\b/gi,'').trim();
+  return base.split(/\s+/).slice(0,3).join(' ');
 }
 function buildWlwUrl(query){
   var slug=slugifyWlw(query);
