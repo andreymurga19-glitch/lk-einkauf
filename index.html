@@ -573,15 +573,8 @@ function doMain(){
   btnG.href='https://www.google.de/search?q='+encodeURIComponent(item.l+' '+item.d);
   var btnW=document.createElement('a');
   btnW.className='sbtn gb'; btnW.textContent='🏗️ wlw.de'; btnW.target='_blank';
-  btnW.title='Назву товару скопійовано в буфер — вставте в поле пошуку на wlw.de';
-  // NOTE: wlw.de blocks automated crawling (robots.txt), so the exact deep-search URL
-  // structure could not be verified. Linking to the homepage avoids guessing a path that
-  // might 404 — the search term is copied to clipboard so it can be pasted into wlw's own
-  // search box after the page opens.
-  btnW.href='https://www.wlw.de/de';
-  btnW.addEventListener('click',function(){
-    try{ navigator.clipboard.writeText(item.l+' '+item.d); }catch(e){}
-  });
+  btnW.title='Пошук постачальників на wlw.de (Wer liefert was)';
+  btnW.href=buildWlwUrl(item.l+' '+item.d);
   acts.appendChild(btnQ); acts.appendChild(btnG); acts.appendChild(btnW);
 }
 
@@ -1001,6 +994,28 @@ async function doInfo(){
     var d=document.getElementById('infoDesc');
     if(d) d.innerHTML='<p style="color:var(--err);font-size:12px">'+err2.message+'</p>';
   }
+}
+
+// wlw.de (Wer liefert was) B2B supplier search — confirmed URL pattern via search engine
+// indexing of real pages: https://www.wlw.de/de/suche/{slug}/{city-slug}
+function slugifyWlw(text){
+  return text
+    .toLowerCase()
+    .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+    .replace(/[^a-z0-9\s-]/g,'')
+    .trim()
+    .replace(/\s+/g,'-');
+}
+function buildWlwUrl(query){
+  var slug=slugifyWlw(query);
+  var plzSel=document.getElementById('plzSel');
+  var cityText=plzSel?plzSel.selectedOptions[0].text:'';
+  // cityText looks like "Salzgitter (38226)" or "Deutschland (gesamt)" — strip the parenthetical part
+  var city=cityText.replace(/\s*\(.*\)\s*$/,'').trim();
+  if(!city || city==='Deutschland'){
+    return 'https://www.wlw.de/de/suche/'+slug;
+  }
+  return 'https://www.wlw.de/de/suche/'+slug+'/'+slugifyWlw(city);
 }
 
 function cpyA(name,artikel){
