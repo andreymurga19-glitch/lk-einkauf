@@ -40,9 +40,9 @@
     "id": "task_1781701681694",
     "text": "зробити чеки Олега",
     "type": "local",
-    "done": false,
+    "done": true,
     "created": 1781701681694,
-    "completedAt": null
+    "completedAt": 1781879165077
   },
   {
     "id": "task_1781701641942",
