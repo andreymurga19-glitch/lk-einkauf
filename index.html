@@ -317,6 +317,7 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
   <button class="sec-btn active" id="secBtnZakup" onclick="switchSection('zakup')">&#128230; Закупки</button>
   <button class="sec-btn" id="secBtnSklad" onclick="switchSection('sklad')">&#127981; Склад</button>
   <button class="sec-btn" id="secBtnTasks" onclick="switchSection('tasks')">&#9989; Задачі<span id="taskBadgeNav"></span></button>
+  <button class="sec-btn" id="secBtnCalls" onclick="switchSection('calls')">&#128222; Дзвінки</button>
 </div>
 
 <div class="main" id="secZakup">
@@ -402,6 +403,21 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
   </div>
 </div>
 
+
+<div id="secCalls" style="display:none">
+  <div class="tasks-inner">
+    <div class="mic-card">
+      <button class="mic-btn" id="micBtnCall" onclick="toggleMicCall()">&#127908;</button>
+      <div class="mic-status" id="micStatusCall">Натисни і скажи опис дзвінка</div>
+      <textarea class="mic-transcript" id="micTranscriptCall" placeholder="Опис дзвінка (можна редагувати вручну)" rows="3" oninput="onCallTranscriptEdit(this.value)"></textarea>
+      <div class="mic-actions" id="micActionsCall" style="display:none">
+        <button class="mic-act-btn global" onclick="saveCall()" style="width:100%">&#128222; Зберегти дзвінок</button>
+      </div>
+    </div>
+    <div id="callCalendar"></div>
+    <div id="callsList"></div>
+  </div>
+</div>
 
 <!-- SAVINGS REPORT MODAL -->
 <div class="report-modal" id="reportModal" onclick="closeReportClick(event)">
@@ -1436,11 +1452,13 @@ function switchSection(sec){
   document.getElementById('secZakup').style.display = sec==='zakup' ? 'flex' : 'none';
   document.getElementById('secSklad').style.display = sec==='sklad' ? 'flex' : 'none';
   document.getElementById('secTasks').style.display = sec==='tasks' ? 'block' : 'none';
-  ['secBtnZakup','secBtnSklad','secBtnTasks'].forEach(function(id){
+  document.getElementById('secCalls').style.display = sec==='calls' ? 'block' : 'none';
+  ['secBtnZakup','secBtnSklad','secBtnTasks','secBtnCalls'].forEach(function(id){
     document.getElementById(id).classList.remove('active');
   });
   document.getElementById('secBtn'+sec.charAt(0).toUpperCase()+sec.slice(1)).classList.add('active');
   if(sec==='tasks'){ renderTasks(); loadTasksFromServer(); }
+  if(sec==='calls'){ renderCalls(); }
 }
 
 // ═══════════════════════════════════
@@ -1698,6 +1716,195 @@ function renderTasks(){
   list.innerHTML = html;
 }
 
+
+
+// ═══════════════════════════════════
+// CALLS - VOICE INPUT + CALENDAR
+// ═══════════════════════════════════
+var CALLS_KEY = 'lk_calls_v1';
+var callRecognition = null;
+var isCallRecording = false;
+var callBaseTranscript = '';
+var callCurrentTranscript = '';
+
+function getCalls(){
+  try{ return JSON.parse(localStorage.getItem(CALLS_KEY)||'[]'); }catch(e){ return []; }
+}
+function saveCalls(arr){
+  try{ localStorage.setItem(CALLS_KEY, JSON.stringify(arr)); }catch(e){}
+}
+
+function onCallTranscriptEdit(v){
+  callCurrentTranscript = v;
+  document.getElementById('micActionsCall').style.display = v.trim() ? 'flex' : 'none';
+}
+
+function toggleMicCall(){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ document.getElementById('micStatusCall').textContent='Голосовий ввід не підтримується (потрібен Chrome)'; return; }
+  if(isCallRecording){
+    if(callRecognition) callRecognition.abort();
+    isCallRecording = false;
+    document.getElementById('micBtnCall').classList.remove('recording');
+    return;
+  }
+  if(callRecognition){ try{ callRecognition.abort(); }catch(e){} }
+  callRecognition = new SR();
+  callRecognition.lang = 'uk-UA';
+  callRecognition.continuous = false;
+  callRecognition.interimResults = true;
+  document.getElementById('micActionsCall').style.display = 'none';
+  document.getElementById('micStatusCall').textContent = 'Повідомляю... говори';
+
+  callRecognition.onresult = function(event){
+    var sessionText = '';
+    for(var i=0;i<event.results.length;i++) sessionText += event.results[i][0].transcript;
+    callCurrentTranscript = (callBaseTranscript + ' ' + sessionText).trim();
+    document.getElementById('micTranscriptCall').value = callCurrentTranscript;
+  };
+  callRecognition.onerror = function(event){
+    isCallRecording = false;
+    document.getElementById('micBtnCall').classList.remove('recording');
+    if(callCurrentTranscript.trim()) document.getElementById('micActionsCall').style.display = 'flex';
+    document.getElementById('micStatusCall').textContent = callCurrentTranscript ? 'Готово — збережи або додай ще' : 'Не почув. Спробуй ще раз';
+  };
+  callRecognition.onend = function(){
+    isCallRecording = false;
+    document.getElementById('micBtnCall').classList.remove('recording');
+    callBaseTranscript = callCurrentTranscript;
+    if(callCurrentTranscript.trim()){
+      document.getElementById('micStatusCall').textContent = 'Готово — збережи або додай ще';
+      document.getElementById('micActionsCall').style.display = 'flex';
+    } else {
+      document.getElementById('micStatusCall').textContent = 'Не почув. Спробуй ще раз';
+    }
+  };
+  try{
+    callRecognition.start();
+    isCallRecording = true;
+    document.getElementById('micBtnCall').classList.add('recording');
+  }catch(e){ document.getElementById('micStatusCall').textContent='Помилка запуску мікрофона'; }
+}
+
+function saveCall(){
+  var text = callCurrentTranscript.trim() || document.getElementById('micTranscriptCall').value.trim();
+  if(!text) return;
+  var calls = getCalls();
+  calls.unshift({ id: 'c'+Date.now(), text: text, created: Date.now() });
+  saveCalls(calls);
+  callBaseTranscript = '';
+  callCurrentTranscript = '';
+  document.getElementById('micTranscriptCall').value = '';
+  document.getElementById('micActionsCall').style.display = 'none';
+  document.getElementById('micStatusCall').textContent = 'Дзвінок збережено! Натисни мікрофон для наступного';
+  renderCalls();
+}
+
+function deleteCall(id){
+  var calls = getCalls().filter(function(c){ return c.id!==id; });
+  saveCalls(calls);
+  renderCalls();
+}
+
+function formatDateKey(ts){
+  var d = new Date(ts);
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+function formatDateLabel(ts){
+  return new Date(ts).toLocaleDateString('uk',{weekday:'short',day:'2-digit',month:'2-digit'});
+}
+function formatTime(ts){
+  return new Date(ts).toLocaleTimeString('uk',{hour:'2-digit',minute:'2-digit'});
+}
+
+function generateCallReport(){
+  var calls = getCalls();
+  var today = formatDateKey(Date.now());
+  var todayCalls = calls.filter(function(c){ return formatDateKey(c.created)===today; });
+  if(!todayCalls.length){ alert('Сьогодні дзвінків немає'); return; }
+  var d = new Date();
+  var dateStr = d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var lines = ['Отчет по звонкам за '+dateStr,'L.K. Bauservice GmbH',''];
+  todayCalls.forEach(function(c,i){
+    lines.push((i+1)+'. ['+formatTime(c.created)+'] '+c.text);
+  });
+  lines.push('');
+  lines.push('Всього дзвінків за день: '+todayCalls.length);
+  var text = lines.join('\n');
+  if(navigator.clipboard){ navigator.clipboard.writeText(text); }
+  var modal = document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML='<div style="background:#fff;border-radius:14px;padding:24px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto">'
+    +'<div style="font-weight:700;font-size:16px;margin-bottom:12px">📋 Отчет скопійовано</div>'
+    +'<pre style="font-size:12px;white-space:pre-wrap;background:#f8f9fa;padding:12px;border-radius:8px">'+text+'</pre>'
+    +'<button onclick="document.body.removeChild(this.parentNode.parentNode)" style="margin-top:12px;background:var(--gold);border:none;border-radius:8px;padding:10px 24px;font-weight:700;cursor:pointer;width:100%">Закрити</button>'
+    +'</div>';
+  document.body.appendChild(modal);
+}
+
+function renderCalls(){
+  var calls = getCalls();
+  var calEl = document.getElementById('callCalendar');
+  var listEl = document.getElementById('callsList');
+
+  // Group by date
+  var groups = {};
+  calls.forEach(function(c){
+    var dk = formatDateKey(c.created);
+    if(!groups[dk]) groups[dk]=[]; groups[dk].push(c);
+  });
+  var dateKeys = Object.keys(groups).sort(function(a,b){return b>a?1:-1;});
+
+  // Calendar strip (last 14 days)
+  var calHtml = '<div style="margin-bottom:16px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    +'<div style="font-size:11px;font-weight:700;color:var(--mut);letter-spacing:1px">КАЛЕНДАР (14 днів)</div>'
+    +'<button onclick="generateCallReport()" style="background:var(--gold);border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">📤 Отчет шефу</button>'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">';
+  for(var i=13;i>=0;i--){
+    var d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+    var dk = formatDateKey(d.getTime());
+    var cnt = groups[dk] ? groups[dk].length : 0;
+    var isToday = i===0;
+    var bg = cnt>0 ? 'var(--gold)' : (isToday ? '#f0f4ff' : '#f5f5f5');
+    var col = cnt>0 ? '#1a2332' : '#aaa';
+    var dayName = d.toLocaleDateString('uk',{weekday:'short'});
+    var dayNum = d.getDate();
+    calHtml += '<div style="flex-shrink:0;width:40px;text-align:center;background:'+bg+';border-radius:8px;padding:6px 4px;border:'+(isToday?'2px solid #3458eb':'1px solid #e5e5e5')+'">'
+      +'<div style="font-size:9px;color:'+col+';font-weight:700">'+dayName+'</div>'
+      +'<div style="font-size:14px;font-weight:700;color:'+col+'">'+dayNum+'</div>'
+      +'<div style="font-size:11px;font-weight:700;color:'+(cnt>0?'#1a2332':'#ccc')+'">'+cnt+'</div>'
+      +'</div>';
+  }
+  calHtml += '</div></div>';
+  calEl.innerHTML = calHtml;
+
+  // List by date
+  if(!calls.length){
+    listEl.innerHTML='<div class="tasks-empty"><div class="wi">📞</div><p style="font-size:13px">Дзвінків немає. Натисни мікрофон і скажи опис дзвінка.</p></div>';
+    return;
+  }
+  var html='';
+  dateKeys.forEach(function(dk){
+    var arr = groups[dk];
+    var label = formatDateLabel(arr[0].created);
+    var isToday = dk===formatDateKey(Date.now());
+    html += '<div style="font-size:10px;color:var(--mut);font-weight:700;letter-spacing:1px;margin:14px 0 6px;font-family:monospace">'
+      +(isToday?'📅 СЬОГОДНІ — ':'')+label+' ('+arr.length+' дзвінків)</div>';
+    arr.forEach(function(c){
+      html += '<div class="task-item global" style="border-left:3px solid var(--gold)">'
+        +'<div style="font-size:18px;padding:12px 8px 12px 12px">📞</div>'
+        +'<div class="task-body">'
+        +'<div class="task-text">'+c.text+'</div>'
+        +'<div class="task-meta">'+formatTime(c.created)+'</div>'
+        +'</div>'
+        +'<button class="task-del" data-cid="'+c.id+'" onclick="deleteCall(this.dataset.cid)">×</button>'
+        +'</div>';
+    });
+  });
+  listEl.innerHTML = html;
+}
 
 buildTree();
 renderTasks();
