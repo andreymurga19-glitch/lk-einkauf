@@ -405,6 +405,7 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
 
 
 <div id="secCalls" style="display:none">
+  <div class="tasks-wrap">
   <div class="tasks-inner">
     <div class="mic-card">
       <button class="mic-btn" id="micBtnCall" onclick="toggleMicCall()">&#127908;</button>
@@ -416,6 +417,7 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--txt);height
     </div>
     <div id="callCalendar"></div>
     <div id="callsList"></div>
+  </div>
   </div>
 </div>
 
@@ -1808,7 +1810,7 @@ function deleteCall(id){
 
 function formatDateKey(ts){
   var d = new Date(ts);
-  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
 }
 function formatDateLabel(ts){
   return new Date(ts).toLocaleDateString('uk',{weekday:'short',day:'2-digit',month:'2-digit'});
@@ -1866,7 +1868,7 @@ function renderCalls(){
     var d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
     var dk = formatDateKey(d.getTime());
     var cnt = groups[dk] ? groups[dk].length : 0;
-    var isToday = i===0;
+    var isToday = (formatDateKey(d.getTime())===formatDateKey(Date.now()));
     var bg = cnt>0 ? 'var(--gold)' : (isToday ? '#f0f4ff' : '#f5f5f5');
     var col = cnt>0 ? '#1a2332' : '#aaa';
     var dayName = d.toLocaleDateString('uk',{weekday:'short'});
