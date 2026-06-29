@@ -17,8 +17,9 @@
     "id": "task_1781879188289",
     "text": "Вернути радіатори",
     "type": "local",
-    "done": false,
-    "created": 1781879188289
+    "done": true,
+    "created": 1781879188289,
+    "completedAt": 1782738769412
   },
   {
     "id": "task_1781779792748",
